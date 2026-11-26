@@ -1,0 +1,5368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bento Grid Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --bg-workspace: #0A0A0A;
+    --bg-panel: #141414;
+    --bg-surface: #1A1A1A;
+    --bg-hover: #212121;
+    --border: #242424;
+    --border-strong: #383838;
+    --text-primary: #EDEDED;
+    --text-secondary: #8A8A8A;
+    --text-muted: #565656;
+    --accent: #FFFFFF;
+    --accent-fg: #0A0A0A;
+    --ease-liquid: cubic-bezier(0.22, 1, 0.36, 1);
+    --topbar-h: 44px;
+    --inspector-w: 304px;
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    background: var(--bg-workspace);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 12px;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* Layout Shell */
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    height: 100dvh;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  /* Top Bar (44px) */
+  .topbar {
+    height: var(--topbar-h);
+    min-height: var(--topbar-h);
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    gap: 12px;
+    z-index: 40;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .app-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .topbar-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Buttons */
+  .btn {
+    appearance: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    border-radius: 5px;
+    height: 26px;
+    padding: 0 9px;
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(0.5px);
+  }
+
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .btn-outline {
+    background: var(--bg-surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+
+  .btn-outline:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #E4E4E4;
+    border-color: #E4E4E4;
+    color: var(--accent-fg);
+  }
+
+  .btn-icon {
+    width: 26px;
+    padding: 0;
+  }
+
+  .btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  /* Main Area */
+  .main-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Workspace (Left ~75%) */
+  .workspace {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    background-color: var(--bg-workspace);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 28px;
+    overflow: hidden;
+  }
+
+  .stage-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ratio-badge {
+    position: absolute;
+    top: -26px;
+    right: 0;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 7px;
+    letter-spacing: 0.01em;
+    pointer-events: none;
+    z-index: 15;
+    white-space: nowrap;
+  }
+
+  /* Artboard Stage */
+  .artboard {
+    position: relative;
+    background: #111111;
+    box-shadow: 0 0 0 1px var(--border), 0 24px 64px rgba(0, 0, 0, 0.72);
+    overflow: hidden;
+    transition: width 420ms var(--ease-liquid), height 420ms var(--ease-liquid), background-color 280ms ease;
+  }
+
+  .artboard.no-transition {
+    transition: background-color 280ms ease;
+  }
+
+  .artboard-grid-guides {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 180ms ease;
+    z-index: 2;
+  }
+
+  .artboard.show-guides .artboard-grid-guides {
+    opacity: 1;
+  }
+
+  .guide-cell {
+    position: absolute;
+    border: 1px dashed rgba(255, 255, 255, 0.09);
+    border-radius: 3px;
+  }
+
+  /* Empty Area Add (+) Slots */
+  .empty-slots-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .artboard.previewing .empty-slots-layer,
+  .artboard.framing-active .empty-slots-layer {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .empty-slot-btn {
+    position: absolute;
+    pointer-events: auto;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px dashed rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease,
+      left 380ms var(--ease-liquid),
+      top 380ms var(--ease-liquid),
+      width 380ms var(--ease-liquid),
+      height 380ms var(--ease-liquid),
+      border-radius 300ms var(--ease-liquid);
+  }
+
+  .empty-slot-btn:hover,
+  .empty-slot-btn.drag-over {
+    background: rgba(255, 255, 255, 0.075);
+    border-color: rgba(255, 255, 255, 0.55);
+    color: #FFFFFF;
+  }
+
+  .empty-slot-plus {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(10, 10, 10, 0.42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 180ms var(--ease-liquid), background 160ms ease, border-color 160ms ease, color 160ms ease;
+  }
+
+  .empty-slot-btn:hover .empty-slot-plus,
+  .empty-slot-btn.drag-over .empty-slot-plus {
+    transform: scale(1.08);
+    background: #FFFFFF;
+    border-color: #FFFFFF;
+    color: #0A0A0A;
+  }
+
+  .empty-slot-plus svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .drop-ghost {
+    position: absolute;
+    border: 1.5px dashed rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0;
+    transition: left 180ms var(--ease-liquid), top 180ms var(--ease-liquid), width 180ms var(--ease-liquid), height 180ms var(--ease-liquid), opacity 120ms ease;
+  }
+
+  .drop-ghost.visible {
+    opacity: 1;
+  }
+
+  /* Framing Mode Dimmed Backdrop */
+  .framing-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    z-index: 60;
+  }
+
+  .artboard.framing-active .framing-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Bento Blocks */
+  .bento-block {
+    position: absolute;
+    cursor: grab;
+    z-index: 5;
+    touch-action: none;
+    will-change: left, top, width, height, transform, opacity;
+    transition:
+      left 420ms var(--ease-liquid),
+      top 420ms var(--ease-liquid),
+      width 420ms var(--ease-liquid),
+      height 420ms var(--ease-liquid);
+  }
+
+  .bento-block.dragging {
+    cursor: grabbing;
+    z-index: 80 !important;
+    transition: none;
+  }
+
+  .bento-block.resizing {
+    z-index: 80 !important;
+    transition: none;
+  }
+
+  .bento-block.framing {
+    z-index: 90 !important;
+    cursor: move;
+  }
+
+  .bento-block.preview-anim {
+    transition: none !important;
+  }
+
+  /* Clipped Inner Surface */
+  .block-surface {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: #1A1A1A;
+    transition: border-radius 320ms var(--ease-liquid), background-color 260ms ease;
+  }
+
+  /* Crisp SVG outline hugging both rectangular and liquid notched shapes */
+  .block-outline-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 14;
+    overflow: visible;
+  }
+
+  .block-outline-path {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 1.5;
+    transition: stroke 160ms ease;
+  }
+
+  .bento-block:hover .block-outline-path {
+    stroke: rgba(255, 255, 255, 0.26);
+  }
+
+  .bento-block.selected .block-outline-path {
+    stroke: rgba(255, 255, 255, 0.92);
+  }
+
+  .bento-block.drag-over .block-outline-path {
+    stroke: #FFFFFF;
+    stroke-width: 2;
+  }
+
+  .bento-block.dragging .block-outline-path,
+  .bento-block.resizing .block-outline-path,
+  .bento-block.framing .block-outline-path {
+    stroke: #FFFFFF;
+    stroke-width: 1.75;
+  }
+
+  .artboard.previewing .block-outline-path {
+    stroke: transparent !important;
+  }
+
+  /* Media inside block */
+  .block-media {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    max-width: none;
+    max-height: none;
+  }
+
+  /* Rich Multi-Style Text Layer inside block */
+  .block-text-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+    z-index: 6;
+    overflow: hidden;
+  }
+
+  .block-text-slot {
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+  }
+
+  /* Empty block subtle affordance */
+  .block-empty-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 160ms ease;
+  }
+
+  .bento-block:hover .block-empty-hint,
+  .bento-block.selected .block-empty-hint,
+  .bento-block.drag-over .block-empty-hint {
+    opacity: 1;
+  }
+
+  .artboard.previewing .block-empty-hint {
+    opacity: 0 !important;
+  }
+
+  .block-empty-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(10, 10, 10, 0.48);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.78);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+
+  /* Quick Block Floating Actions */
+  .block-quick-bar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms ease;
+    z-index: 16;
+  }
+
+  .bento-block:hover .block-quick-bar,
+  .bento-block.selected .block-quick-bar {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .bento-block.dragging .block-quick-bar,
+  .bento-block.resizing .block-quick-bar,
+  .bento-block.framing .block-quick-bar,
+  .artboard.previewing .block-quick-bar {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .quick-pill {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    background: rgba(10, 10, 10, 0.76);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #EDEDED;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  }
+
+  .quick-pill:hover {
+    background: #FFFFFF;
+    color: #0A0A0A;
+    border-color: #FFFFFF;
+  }
+
+  .quick-pill svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  /* Resize Handles (All 4 Sides + All 4 Corners) */
+  .resize-handle {
+    position: absolute;
+    z-index: 15;
+    opacity: 0;
+    touch-action: none;
+    transition: opacity 140ms ease;
+  }
+
+  .bento-block:hover .resize-handle,
+  .bento-block.selected .resize-handle {
+    opacity: 1;
+  }
+
+  .bento-block.framing .resize-handle,
+  .artboard.previewing .resize-handle {
+    display: none;
+  }
+
+  .resize-e { top: 14px; bottom: 14px; right: 0; width: 7px; cursor: ew-resize; }
+  .resize-w { top: 14px; bottom: 14px; left: 0; width: 7px; cursor: ew-resize; }
+  .resize-s { left: 14px; right: 14px; bottom: 0; height: 7px; cursor: ns-resize; }
+  .resize-n { left: 14px; right: 14px; top: 0; height: 7px; cursor: ns-resize; }
+
+  .resize-nw, .resize-ne, .resize-sw, .resize-se {
+    width: 15px;
+    height: 15px;
+    display: flex;
+    padding: 3px;
+  }
+
+  .resize-nw { left: 0; top: 0; cursor: nwse-resize; align-items: flex-start; justify-content: flex-start; }
+  .resize-ne { right: 0; top: 0; cursor: nesw-resize; align-items: flex-start; justify-content: flex-end; }
+  .resize-sw { left: 0; bottom: 0; cursor: nesw-resize; align-items: flex-end; justify-content: flex-start; }
+  .resize-se { right: 0; bottom: 0; cursor: nwse-resize; align-items: flex-end; justify-content: flex-end; }
+
+  .resize-nw::after {
+    content: ''; width: 6px; height: 6px;
+    border-left: 1.5px solid rgba(255, 255, 255, 0.72);
+    border-top: 1.5px solid rgba(255, 255, 255, 0.72);
+    border-radius: 1px;
+  }
+  .resize-ne::after {
+    content: ''; width: 6px; height: 6px;
+    border-right: 1.5px solid rgba(255, 255, 255, 0.72);
+    border-top: 1.5px solid rgba(255, 255, 255, 0.72);
+    border-radius: 1px;
+  }
+  .resize-sw::after {
+    content: ''; width: 6px; height: 6px;
+    border-left: 1.5px solid rgba(255, 255, 255, 0.72);
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.72);
+    border-radius: 1px;
+  }
+  .resize-se::after {
+    content: ''; width: 6px; height: 6px;
+    border-right: 1.5px solid rgba(255, 255, 255, 0.72);
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.72);
+    border-radius: 1px;
+  }
+
+  /* Framing Floating HUD */
+  .framing-hud {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 4px 6px 4px 10px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    z-index: 95;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
+  }
+
+  .framing-hud.visible {
+    display: flex;
+  }
+
+  .framing-readout {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .framing-readout strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  /* Inspector Panel (Right ~25%, fixed 304px) */
+  .inspector {
+    width: var(--inspector-w);
+    min-width: var(--inspector-w);
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .inspector::-webkit-scrollbar {
+    width: 5px;
+  }
+  .inspector::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .inspector::-webkit-scrollbar-thumb {
+    background: #282828;
+    border-radius: 3px;
+  }
+
+  .section {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .section:last-child {
+    border-bottom: none;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .section-title {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section-title svg {
+    width: 12px;
+    height: 12px;
+    color: var(--text-secondary);
+  }
+
+  .total-dur-badge {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* Preset Grid */
+  .preset-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+
+  .pill-btn {
+    appearance: none;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    height: 26px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pill-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .pill-btn.active {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Dimension & Text Inputs */
+  .dim-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .input-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    height: 26px;
+    padding: 0 7px;
+    gap: 5px;
+    transition: border-color 140ms ease;
+  }
+
+  .input-box:focus-within {
+    border-color: var(--border-strong);
+  }
+
+  .input-prefix {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .input-box input,
+  .input-box select {
+    width: 100%;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .select-input {
+    width: 100%;
+    height: 26px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 7px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 11.5px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .select-input:focus {
+    border-color: var(--border-strong);
+  }
+
+  .select-input option {
+    background: var(--bg-panel);
+    color: var(--text-primary);
+  }
+
+  /* Custom Visual Font Picker with Live Typeface Previews */
+  .font-picker {
+    position: relative;
+    width: 100%;
+  }
+
+  .font-picker-trigger {
+    width: 100%;
+    height: 28px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 8px;
+    color: var(--text-primary);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    cursor: pointer;
+    transition: border-color 140ms ease, background 140ms ease;
+  }
+
+  .font-picker-trigger:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+  }
+
+  .font-picker-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    max-height: 210px;
+    overflow-y: auto;
+    background: #121212;
+    border: 1px solid var(--border-strong);
+    border-radius: 5px;
+    padding: 4px;
+    z-index: 60;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .font-picker-menu::-webkit-scrollbar {
+    width: 4px;
+  }
+  .font-picker-menu::-webkit-scrollbar-thumb {
+    background: #2C2C2C;
+    border-radius: 2px;
+  }
+
+  .font-picker-tools {
+    display: flex; flex-direction: column; gap: 5px; padding: 4px 4px 6px;
+    border-bottom: 1px solid var(--border); position: sticky; top: -4px;
+    background: #121212; z-index: 2;
+  }
+  .font-search-input {
+    width: 100%; height: 27px; border: 1px solid var(--border); border-radius: 4px;
+    background: var(--bg-surface); color: var(--text-primary); padding: 0 7px;
+    outline: none; font: inherit; user-select: text;
+  }
+  .font-search-input:focus { border-color: var(--border-strong); }
+  .font-scan-btn {
+    height: 25px; border: 1px solid var(--border); border-radius: 4px;
+    background: var(--bg-surface); color: var(--text-primary); font: inherit; cursor: pointer;
+  }
+  .font-scan-btn:hover { background: var(--bg-hover); }
+  .font-picker-status { padding: 6px 8px 4px; color: var(--text-muted); font-size: 10px; line-height: 1.35; }
+  .font-group-label {
+    padding: 7px 8px 3px; color: var(--text-muted); font-size: 9px;
+    font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  }
+
+  .font-option {
+    appearance: none;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 8px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 110ms ease;
+  }
+
+  .font-option:hover {
+    background: var(--bg-hover);
+  }
+
+  .font-option.active {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .font-option-sample {
+    font-size: 13.5px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .font-option-cat {
+    font-family: 'Inter', sans-serif;
+    font-size: 9.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  .font-option.active .font-option-cat {
+    color: #555555;
+  }
+
+  .text-area-input {
+    width: 100%;
+    min-height: 46px;
+    resize: vertical;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 11.5px;
+    line-height: 1.35;
+    outline: none;
+    user-select: text;
+  }
+
+  .text-area-input:focus {
+    border-color: var(--border-strong);
+  }
+
+  .dim-sep {
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+
+  /* Sliders */
+  .control-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .control-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+  }
+
+  .control-label {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .control-value {
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 16px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 2px;
+    background: #2C2C2C;
+    border-radius: 1px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    margin-top: -4.5px;
+    border: none;
+    transition: transform 120ms ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.18);
+  }
+
+  input[type="range"]::-moz-range-track {
+    height: 2px;
+    background: #2C2C2C;
+    border-radius: 1px;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: none;
+  }
+
+  /* Color Controls */
+  .color-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .color-input-group {
+    display: flex;
+    align-items: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    height: 26px;
+    padding: 0 6px 0 4px;
+    gap: 6px;
+    width: 118px;
+  }
+
+  .color-input-group:focus-within {
+    border-color: var(--border-strong);
+  }
+
+  .color-swatch-wrap {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .color-swatch-wrap input[type="color"] {
+    position: absolute;
+    inset: -6px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  .hex-input {
+    width: 100%;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 11px;
+    text-transform: uppercase;
+    user-select: text;
+  }
+
+  /* Curated Palettes */
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+  }
+
+  .palette-btn {
+    appearance: none;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: border-color 140ms ease;
+  }
+
+  .palette-btn:hover {
+    border-color: var(--border-strong);
+  }
+
+  .palette-btn.active {
+    border-color: var(--accent);
+  }
+
+  .palette-chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    height: 18px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .palette-chip {
+    width: 100%;
+    height: 100%;
+  }
+
+  .palette-name {
+    font-size: 9.5px;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Segmented Control */
+  .segmented {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .segmented-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .segmented-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .seg-btn {
+    appearance: none;
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    height: 22px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 140ms ease, color 140ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .seg-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .seg-btn:hover {
+    color: var(--text-primary);
+  }
+
+  .seg-btn.active {
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-weight: 600;
+  }
+
+  /* Compact Typography Sub-panel */
+  .sub-panel {
+    background: #101010;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .inline-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .duration-grid {
+    display: grid;
+    grid-template-columns: 42px 1fr 56px;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .dur-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  /* Action Row */
+  .action-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .btn-tall {
+    height: 30px;
+    font-size: 11.5px;
+  }
+
+  .btn-full {
+    width: 100%;
+  }
+
+  /* Export Progress Bar */
+  .progress-wrap {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0%;
+    background: rgba(255, 255, 255, 0.16);
+    pointer-events: none;
+    transition: width 80ms linear;
+  }
+
+  .btn-primary .progress-fill {
+    background: rgba(10, 10, 10, 0.18);
+  }
+
+  /* Block Inspector Hidden State */
+  .block-inspector-empty {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 2px 0;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 7px 11px;
+    border-radius: 6px;
+    z-index: 100;
+    opacity: 0;
+    transform: translateY(6px);
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms var(--ease-liquid);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+  }
+
+  .toast.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Mobile Inspector Toggle Bar (hidden on desktop) */
+  .mobile-panel-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 12px;
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .mobile-panel-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+  }
+
+  /* Responsive: Tablet */
+  @media (max-width: 1024px) {
+    :root {
+      --inspector-w: 272px;
+    }
+    .topbar {
+      padding: 0 10px;
+      gap: 8px;
+    }
+    .workspace {
+      padding: 28px 18px 20px;
+    }
+  }
+
+  /* Responsive: Phone, Small Tablet & Narrow Google Sites Embeds */
+  @media (max-width: 768px) {
+    .topbar {
+      padding: 0 8px;
+      gap: 6px;
+    }
+    .topbar-left {
+      gap: 6px;
+    }
+    .topbar-right {
+      gap: 4px;
+    }
+    .topbar-divider {
+      height: 14px;
+    }
+    .btn {
+      height: 28px;
+      padding: 0 7px;
+      font-size: 11px;
+    }
+    .btn-icon {
+      width: 28px;
+      padding: 0;
+    }
+    .main-body {
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .workspace {
+      flex: 0 0 44%;
+      height: 44%;
+      min-height: 200px;
+      padding: 26px 12px 12px;
+    }
+    .main-body.canvas-expanded .workspace {
+      flex: 1 1 auto;
+      height: auto;
+    }
+    .main-body.canvas-expanded .inspector {
+      display: none;
+    }
+    .mobile-panel-bar {
+      display: flex;
+    }
+    .inspector {
+      width: 100%;
+      min-width: 0;
+      flex: 1 1 auto;
+      min-height: 0;
+      border-left: none;
+      border-top: none;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .section {
+      padding: 11px 12px;
+    }
+    .ratio-badge {
+      top: -22px;
+      font-size: 10px;
+      padding: 1px 6px;
+    }
+    .framing-hud {
+      bottom: 8px;
+      max-width: calc(100% - 16px);
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 8px;
+    }
+    .toast {
+      left: 50%;
+      bottom: 12px;
+      transform: translate(-50%, 6px);
+      max-width: calc(100% - 24px);
+      text-align: center;
+    }
+    .toast.visible {
+      transform: translate(-50%, 0);
+    }
+    .font-picker-menu {
+      max-height: 180px;
+    }
+  }
+
+  /* Compact title on smaller phones/embeds */
+  @media (max-width: 640px) {
+    .app-title-text {
+      display: none;
+    }
+  }
+
+  /* Ultra-narrow phones (< 400px) */
+  @media (max-width: 400px) {
+    .topbar-divider {
+      display: none;
+    }
+    .topbar-actions .btn-label {
+      display: none;
+    }
+    .topbar-actions .btn {
+      width: 28px;
+      padding: 0;
+    }
+  }
+
+  /* Touch-friendly targets for tablets & phones */
+  @media (pointer: coarse) {
+    .btn, .pill-btn, .input-box, .select-input {
+      min-height: 30px;
+    }
+    .seg-btn {
+      min-height: 26px;
+    }
+    input[type="range"] {
+      height: 24px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      width: 15px;
+      height: 15px;
+      margin-top: -6.5px;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 15px;
+      height: 15px;
+    }
+    .resize-e, .resize-w {
+      width: 12px;
+    }
+    .resize-n, .resize-s {
+      height: 12px;
+    }
+    .resize-nw, .resize-ne, .resize-sw, .resize-se {
+      width: 22px;
+      height: 22px;
+    }
+    .quick-pill {
+      width: 26px;
+      height: 26px;
+    }
+  }
+
+  /* Short-height Google Sites embeds */
+  @media (max-height: 540px) and (min-width: 769px) {
+    .workspace {
+      padding: 24px 16px 14px;
+    }
+    .ratio-badge {
+      top: -21px;
+      font-size: 10px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="app-title" title="Bento Grid Generator">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0;">
+          <rect x="1.5" y="1.5" width="5.5" height="7.5" rx="1.2"/>
+          <rect x="9" y="1.5" width="5.5" height="4.5" rx="1.2"/>
+          <rect x="9" y="8" width="5.5" height="6.5" rx="1.2"/>
+          <rect x="1.5" y="11" width="5.5" height="3.5" rx="1.2"/>
+        </svg>
+        <span class="app-title-text">Bento Grid Generator</span>
+      </div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-actions">
+        <button class="btn" id="btnNew" title="New project">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.5 2H4a1.5 1.5 0 0 0-1.5 1.5v9A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V6L9.5 2Z"/>
+            <path d="M9.5 2v4h4"/>
+            <path d="M8 8.5v3M6.5 10h3"/>
+          </svg>
+          <span class="btn-label">New</span>
+        </button>
+        <button class="btn" id="btnSave" title="Save project (.json)">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.5 14h-9A1.5 1.5 0 0 1 2 12.5v-9A1.5 1.5 0 0 1 3.5 2h7.38a1.5 1.5 0 0 1 1.06.44l1.62 1.62a1.5 1.5 0 0 1 .44 1.06v7.38A1.5 1.5 0 0 1 12.5 14Z"/>
+            <path d="M10.5 14V9.5h-5V14"/>
+            <path d="M5.5 2v3h4"/>
+          </svg>
+          <span class="btn-label">Save</span>
+        </button>
+        <button class="btn" id="btnOpen" title="Open project (.json)">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h2.67a1.5 1.5 0 0 1 1.06.44L8.5 4.7h4A1.5 1.5 0 0 1 14 6.2v6.3a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12.5v-8Z"/>
+          </svg>
+          <span class="btn-label">Open</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <button class="btn btn-icon" id="btnUndo" title="Undo (Ctrl+Z)" disabled>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 6.5h6a3.5 3.5 0 1 1 0 7H7"/>
+          <path d="M6 4 3.5 6.5 6 9"/>
+        </svg>
+      </button>
+      <button class="btn btn-icon" id="btnRedo" title="Redo (Ctrl+Shift+Z)" disabled>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12.5 6.5h-6a3.5 3.5 0 1 0 0 7H9"/>
+          <path d="M10 4l2.5 2.5L10 9"/>
+        </svg>
+      </button>
+      <div class="topbar-divider"></div>
+      <button class="btn btn-outline" id="btnAddBlock" title="Add block">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3.25v9.5M3.25 8h9.5"/>
+        </svg>
+        Add
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace + Inspector -->
+  <div class="main-body" id="mainBody">
+    <main class="workspace" id="workspace">
+      <div class="stage-wrapper" id="stageWrapper">
+        <div class="ratio-badge" id="ratioBadge">16:9 ratio</div>
+        <div class="artboard" id="artboard">
+          <div class="artboard-grid-guides" id="gridGuides"></div>
+          <div class="empty-slots-layer" id="emptySlotsLayer"></div>
+          <div class="drop-ghost" id="dropGhost"></div>
+          <div class="framing-backdrop" id="framingBackdrop"></div>
+        </div>
+      </div>
+
+      <!-- Framing Mode Floating HUD -->
+      <div class="framing-hud" id="framingHud">
+        <span class="framing-readout">Zoom <strong id="framingZoomVal">1.00×</strong> · Pos <strong id="framingPosVal">50%, 50%</strong></span>
+        <div class="segmented" id="framingFitToggle" style="width:94px;">
+          <button class="seg-btn active" data-fit="cover" style="height:20px;font-size:10.5px;">Fill</button>
+          <button class="seg-btn" data-fit="contain" style="height:20px;font-size:10.5px;">Fit</button>
+        </div>
+        <button class="btn btn-outline" id="btnResetFrame" style="height:22px;padding:0 7px;font-size:11px;">Reset</button>
+        <button class="btn btn-primary" id="btnExitFrame" style="height:22px;padding:0 8px;font-size:11px;">Done</button>
+      </div>
+    </main>
+
+    <!-- Mobile / Tablet Canvas-Inspector Toggle Bar -->
+    <div class="mobile-panel-bar" id="mobilePanelBar">
+      <span class="mobile-panel-label">Inspector</span>
+      <button type="button" class="btn btn-outline" id="btnToggleCanvasExpand" style="height:22px;padding:0 8px;font-size:10.5px;">
+        Expand Canvas
+      </button>
+    </div>
+
+    <!-- Right Inspector Panel -->
+    <aside class="inspector">
+      <!-- Aspect Ratio -->
+      <section class="section">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3.5" width="12" height="9" rx="1.5"/>
+            </svg>
+            Canvas
+          </div>
+          <button class="btn btn-icon" id="btnResetLayout" title="Reset grid layout" style="height:22px;width:22px;">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2.5 8a5.5 5.5 0 1 1 1.6 3.9"/>
+              <path d="M2.5 4.5v3.5H6"/>
+            </svg>
+          </button>
+        </div>
+        <div class="preset-row" id="ratioPresets">
+          <button class="pill-btn active" data-w="1920" data-h="1080" data-label="16:9">16:9</button>
+          <button class="pill-btn" data-w="1080" data-h="1920" data-label="9:16">9:16</button>
+          <button class="pill-btn" data-w="1080" data-h="1080" data-label="1:1">1:1</button>
+          <button class="pill-btn" data-w="1080" data-h="1350" data-label="4:5">4:5</button>
+          <button class="pill-btn" data-w="2520" data-h="1080" data-label="21:9">21:9</button>
+        </div>
+        <div class="dim-row">
+          <label class="input-box">
+            <span class="input-prefix">W</span>
+            <input type="number" id="inputWidth" min="200" max="4096" step="10" value="1920">
+          </label>
+          <span class="dim-sep">×</span>
+          <label class="input-box">
+            <span class="input-prefix">H</span>
+            <input type="number" id="inputHeight" min="200" max="4096" step="10" value="1080">
+          </label>
+        </div>
+      </section>
+
+      <!-- Geometry -->
+      <section class="section">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 6h12M2 10h12M6 2v12M10 2v12"/>
+            </svg>
+            Geometry
+          </div>
+        </div>
+        <div class="control-row">
+          <div class="control-label-row">
+            <span class="control-label">Grid Gap</span>
+            <span class="control-value" id="valGap">16px</span>
+          </div>
+          <input type="range" id="sliderGap" min="0" max="48" step="1" value="16">
+        </div>
+        <div class="control-row">
+          <div class="control-label-row">
+            <span class="control-label">Padding</span>
+            <span class="control-value" id="valPadding">24px</span>
+          </div>
+          <input type="range" id="sliderPadding" min="0" max="64" step="1" value="24">
+        </div>
+        <div class="control-row">
+          <div class="control-label-row">
+            <span class="control-label">Radius</span>
+            <span class="control-value" id="valRadius">20px</span>
+          </div>
+          <input type="range" id="sliderRadius" min="0" max="64" step="1" value="20">
+        </div>
+      </section>
+
+      <!-- Color & Theme -->
+      <section class="section">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="8" r="5.5"/>
+              <path d="M8 2.5v11"/>
+            </svg>
+            Theme
+          </div>
+        </div>
+        <div class="color-row">
+          <span class="control-label">Canvas</span>
+          <div class="color-input-group">
+            <div class="color-swatch-wrap" id="swatchCanvasBg">
+              <input type="color" id="pickerCanvasBg" value="#0E0E0E">
+            </div>
+            <input type="text" class="hex-input" id="hexCanvasBg" value="#0E0E0E" maxlength="7">
+          </div>
+        </div>
+        <div class="color-row">
+          <span class="control-label">Blocks</span>
+          <div class="color-input-group">
+            <div class="color-swatch-wrap" id="swatchBlockBg">
+              <input type="color" id="pickerBlockBg" value="#1A1A1A">
+            </div>
+            <input type="text" class="hex-input" id="hexBlockBg" value="#1A1A1A" maxlength="7">
+          </div>
+        </div>
+        <div class="palette-grid" id="paletteGrid"></div>
+      </section>
+
+      <!-- Selected Block -->
+      <section class="section" id="blockSection">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2.5" y="2.5" width="11" height="11" rx="2"/>
+            </svg>
+            Block
+          </div>
+          <div id="blockHeaderActions" class="hidden" style="display:flex;gap:3px;">
+            <button class="btn btn-icon" id="btnToggleText" title="Add / toggle text" style="height:22px;width:22px;">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3.5 4V3h9v1M8 3v10M6 13h4"/>
+              </svg>
+            </button>
+            <button class="btn btn-icon" id="btnUploadMedia" title="Upload media" style="height:22px;width:22px;">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 10.5V3.5M5 6l3-2.5L11 6"/>
+                <path d="M2.5 11.5v1a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-1"/>
+              </svg>
+            </button>
+            <button class="btn btn-icon" id="btnFrameMedia" title="Frame media (double-click)" style="height:22px;width:22px;">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 2.5H2.5V5M11 2.5h2.5V5M13.5 11v2.5H11M2.5 11v2.5H5"/>
+              </svg>
+            </button>
+            <button class="btn btn-icon" id="btnClearMedia" title="Remove media" style="height:22px;width:22px;">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>
+              </svg>
+            </button>
+            <button class="btn btn-icon" id="btnDeleteBlock" title="Delete block (Del)" style="height:22px;width:22px;">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 4.5h10M6 4.5V3h4v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="blockEmptyMsg" class="block-inspector-empty">Select a block to style, add text, or drop/paste media & GIF URLs.</div>
+
+        <div id="blockControls" class="hidden" style="display:flex;flex-direction:column;gap:9px;">
+          <div class="color-row">
+            <span class="control-label">Fill</span>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div class="color-input-group" style="width:102px;">
+                <div class="color-swatch-wrap" id="swatchSelBlock">
+                  <input type="color" id="pickerSelBlock" value="#1A1A1A">
+                </div>
+                <input type="text" class="hex-input" id="hexSelBlock" value="#1A1A1A" maxlength="7">
+              </div>
+              <button class="btn btn-icon" id="btnResetSelColor" title="Use default color" style="height:26px;width:22px;">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="control-row">
+            <div class="control-label-row">
+              <span class="control-label">Radius Override</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="control-value" id="valSelRadius">Auto</span>
+                <button class="btn btn-icon hidden" id="btnResetSelRadius" title="Reset to global radius" style="height:18px;width:18px;">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px;">
+                    <path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <input type="range" id="sliderSelRadius" min="0" max="64" step="1" value="20">
+          </div>
+
+          <!-- Media Fit & Zoom Controls -->
+          <div id="mediaFitControls" class="hidden" style="display:flex;flex-direction:column;gap:7px;">
+            <div class="color-row">
+              <span class="control-label">Media Fit</span>
+              <div class="segmented" id="inspectorFitToggle" style="width:118px;">
+                <button class="seg-btn active" data-fit="cover">Fill</button>
+                <button class="seg-btn" data-fit="contain">Fit</button>
+              </div>
+            </div>
+            <div class="control-row">
+              <div class="control-label-row">
+                <span class="control-label">Zoom</span>
+                <span class="control-value" id="valMediaZoom">1.00×</span>
+              </div>
+              <input type="range" id="sliderMediaZoom" min="0.15" max="4" step="0.05" value="1">
+            </div>
+          </div>
+
+          <!-- Multi-Style Typography Panel -->
+          <div id="textPanel" class="sub-panel hidden">
+            <div class="section-header">
+              <span class="section-title" style="font-size:10px;">Typography</span>
+              <button class="btn btn-icon" id="btnRemoveText" title="Clear text" style="height:18px;width:18px;">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:10px;height:10px;">
+                  <path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="segmented segmented-3" id="textSlotTabs">
+              <button class="seg-btn active" data-slot="0">Tag</button>
+              <button class="seg-btn" data-slot="1">Title</button>
+              <button class="seg-btn" data-slot="2">Body</button>
+            </div>
+
+            <textarea class="text-area-input" id="inputSlotText" placeholder="Enter text (leave empty to hide)..."></textarea>
+
+            <!-- Local system fonts take priority, followed by Google Fonts and system fallbacks. -->
+            <div class="font-picker" id="fontPicker">
+              <button type="button" class="font-picker-trigger" id="fontPickerTrigger" aria-haspopup="listbox" aria-expanded="false">
+                <span id="fontPickerLabel">Inter</span>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;color:var(--text-secondary);flex-shrink:0;">
+                  <path d="M4.5 6.5 8 10l3.5-3.5"/>
+                </svg>
+              </button>
+              <div class="font-picker-menu hidden" id="fontPickerMenu" role="listbox" aria-label="Choose a font">
+                <div class="font-picker-tools">
+                  <input type="search" id="fontSearchInput" class="font-search-input" placeholder="Search fonts..." autocomplete="off" aria-label="Search fonts">
+                  <button type="button" class="font-scan-btn" id="btnScanLocalFonts">Scan local fonts</button>
+                </div>
+                <div class="font-picker-status" id="fontPickerStatus">Local fonts appear first. Scan to access fonts installed on this device.</div>
+                <div id="fontPickerOptions"></div>
+              </div>
+            </div>
+
+            <div class="inline-row">
+              <label class="input-box" style="width:68px;">
+                <span class="input-prefix">Px</span>
+                <input type="number" id="inputSlotSize" min="10" max="220" step="1" value="44">
+              </label>
+              <select class="select-input" id="selectSlotWeight" style="flex:1;">
+                <option value="400">Regular</option>
+                <option value="500">Medium</option>
+                <option value="600">SemiBold</option>
+                <option value="700">Bold</option>
+              </select>
+              <button class="pill-btn" id="btnSlotItalic" title="Italic" style="width:26px;font-style:italic;">I</button>
+              <button class="pill-btn" id="btnSlotUpper" title="Uppercase" style="width:28px;font-size:10px;">AA</button>
+            </div>
+
+            <div class="color-row">
+              <span class="control-label">Color</span>
+              <div class="color-input-group">
+                <div class="color-swatch-wrap" id="swatchSlotColor">
+                  <input type="color" id="pickerSlotColor" value="#EDEDED">
+                </div>
+                <input type="text" class="hex-input" id="hexSlotColor" value="#EDEDED" maxlength="7">
+              </div>
+            </div>
+
+            <!-- Icon-Only Alignment Panels -->
+            <div class="inline-row" style="justify-content:space-between;">
+              <div class="segmented segmented-3" id="textAlignH" style="width:48%;">
+                <button class="seg-btn active" data-align="left" title="Align left">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M2.5 4h11M2.5 8h7.5M2.5 12h9.5"/>
+                  </svg>
+                </button>
+                <button class="seg-btn" data-align="center" title="Align center">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M2.5 4h11M4.25 8h7.5M3.25 12h9.5"/>
+                  </svg>
+                </button>
+                <button class="seg-btn" data-align="right" title="Align right">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M2.5 4h11M6 8h7.5M4 12h9.5"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="segmented segmented-3" id="textAlignV" style="width:48%;">
+                <button class="seg-btn" data-valign="top" title="Align top">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2.5 3h11"/>
+                    <rect x="5.5" y="5.5" width="5" height="7" rx="1"/>
+                  </svg>
+                </button>
+                <button class="seg-btn active" data-valign="center" title="Align middle">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2.5 8h2.5M11 8h2.5"/>
+                    <rect x="5" y="4.5" width="6" height="7" rx="1"/>
+                  </svg>
+                </button>
+                <button class="seg-btn" data-valign="bottom" title="Align bottom">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2.5 13h11"/>
+                    <rect x="5.5" y="3.5" width="5" height="7" rx="1"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <div class="control-label-row">
+                <span class="control-label">Text Inset</span>
+                <span class="control-value" id="valTextPad">28px</span>
+              </div>
+              <input type="range" id="sliderTextPad" min="8" max="72" step="2" value="28">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Export -->
+      <section class="section">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2.5v7.5M5 7.5 8 10.5l3-3"/>
+              <path d="M2.5 11.5v1a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-1"/>
+            </svg>
+            Export
+          </div>
+          <span class="total-dur-badge" id="valTotalDuration">Total 5s</span>
+        </div>
+
+        <button class="btn btn-outline btn-tall btn-full" id="btnExportPng">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2.5" width="12" height="11" rx="1.5"/>
+            <circle cx="5.5" cy="6" r="1"/>
+            <path d="M2.5 11.5 6 8l2.5 2.5L11 8l2.5 3"/>
+          </svg>
+          Export PNG (2×)
+        </button>
+
+        <div class="color-row">
+          <span class="control-label">Motion</span>
+          <select class="select-input" id="selectExportMode" style="width:154px;">
+            <option value="static">Static (Live Media)</option>
+            <option value="scroll">Scroll Reveal</option>
+            <option value="pop">Pop Scale</option>
+            <option value="wave">Cascade Wave</option>
+            <option value="split">Split Slide</option>
+          </select>
+        </div>
+
+        <!-- Motion / Clip Duration -->
+        <div class="duration-grid">
+          <span class="dur-label" id="lblAnimDur">Dur</span>
+          <div class="segmented segmented-3" id="exportDurationToggle">
+            <button class="seg-btn" data-dur="3">3s</button>
+            <button class="seg-btn active" data-dur="5">5s</button>
+            <button class="seg-btn" data-dur="10">10s</button>
+          </div>
+          <label class="input-box" title="Motion duration in seconds">
+            <input type="number" id="inputCustomDuration" min="0.5" max="60" step="0.5" value="5">
+            <span class="input-prefix">s</span>
+          </label>
+        </div>
+
+        <!-- Extra Hold Duration After Motion -->
+        <div class="duration-grid" id="holdDurationRow">
+          <span class="dur-label">Hold</span>
+          <div class="segmented segmented-4" id="exportHoldToggle">
+            <button class="seg-btn" data-hold="0">0s</button>
+            <button class="seg-btn active" data-hold="2">2s</button>
+            <button class="seg-btn" data-hold="3">3s</button>
+            <button class="seg-btn" data-hold="5">5s</button>
+          </div>
+          <label class="input-box" title="Extra hold seconds after motion finishes">
+            <input type="number" id="inputCustomHold" min="0" max="60" step="0.5" value="2">
+            <span class="input-prefix">s</span>
+          </label>
+        </div>
+
+        <div class="action-grid-2">
+          <button class="btn btn-outline btn-tall" id="btnPreviewAnim">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5,3.5 12.5,8 5,12.5"/>
+            </svg>
+            <span id="previewBtnText">Preview</span>
+          </button>
+          <button class="btn btn-primary btn-tall progress-wrap" id="btnExportMp4">
+            <span class="progress-fill" id="mp4ProgressFill"></span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:relative;z-index:1;">
+              <rect x="2" y="3.5" width="8.5" height="9" rx="1.5"/>
+              <path d="M10.5 6.8 14 4.8v6.4l-3.5-2"/>
+            </svg>
+            <span id="mp4BtnText" style="position:relative;z-index:1;">Export MP4</span>
+          </button>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<!-- Hidden File Inputs -->
+<input type="file" id="fileOpenJson" accept=".json,application/json" class="hidden">
+<input type="file" id="fileUploadMedia" accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm" class="hidden">
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const GRID_COLS = 12;
+  const GRID_ROWS = 12;
+
+  const GOOGLE_FONTS = [
+    { name: 'Inter', cat: 'Sans', fallback: 'sans-serif' },
+    { name: 'Space Grotesk', cat: 'Sans', fallback: 'sans-serif' },
+    { name: 'Syne', cat: 'Display', fallback: 'sans-serif' },
+    { name: 'DM Sans', cat: 'Sans', fallback: 'sans-serif' },
+    { name: 'Plus Jakarta Sans', cat: 'Sans', fallback: 'sans-serif' },
+    { name: 'Outfit', cat: 'Sans', fallback: 'sans-serif' },
+    { name: 'Sora', cat: 'Sans', fallback: 'sans-serif' },
+    { name: 'Playfair Display', cat: 'Serif', fallback: 'serif' },
+    { name: 'Instrument Serif', cat: 'Serif', fallback: 'serif' },
+    { name: 'Fraunces', cat: 'Serif', fallback: 'serif' },
+    { name: 'JetBrains Mono', cat: 'Mono', fallback: 'monospace' },
+    { name: 'Space Mono', cat: 'Mono', fallback: 'monospace' },
+    { name: 'Bebas Neue', cat: 'Display', fallback: 'sans-serif' },
+    { name: 'Archivo Black', cat: 'Display', fallback: 'sans-serif' }
+  ];
+
+  const LOCAL_FONTS = new Map();
+  const FALLBACK_FONTS = [
+    { name: 'Arial', cat: 'System', fallback: 'sans-serif' },
+    { name: 'Helvetica', cat: 'System', fallback: 'sans-serif' },
+    { name: 'Verdana', cat: 'System', fallback: 'sans-serif' },
+    { name: 'Tahoma', cat: 'System', fallback: 'sans-serif' },
+    { name: 'Georgia', cat: 'System', fallback: 'serif' },
+    { name: 'Times New Roman', cat: 'System', fallback: 'serif' },
+    { name: 'Courier New', cat: 'System', fallback: 'monospace' },
+    { name: 'system-ui', cat: 'System', fallback: 'sans-serif' },
+    { name: 'sans-serif', cat: 'Generic', fallback: 'sans-serif' },
+    { name: 'serif', cat: 'Generic', fallback: 'serif' },
+    { name: 'monospace', cat: 'Generic', fallback: 'monospace' }
+  ];
+
+  function quoteFontFamily(name) {
+    return `"${String(name).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+  }
+
+  function getFontCssStack(fontName) {
+    const info = LOCAL_FONTS.get(fontName)
+      || GOOGLE_FONTS.find(f => f.name === fontName)
+      || FALLBACK_FONTS.find(f => f.name === fontName);
+    return `${quoteFontFamily(fontName)}, ${info ? info.fallback : 'sans-serif'}`;
+  }
+
+  function warmFontFace(fontName) {
+    if (document.fonts && document.fonts.load) {
+      document.fonts.load(`400 24px ${quoteFontFamily(fontName)}`).then(() => {
+        updateAllBlockPositions();
+      }).catch(() => {});
+    }
+  }
+
+  const PALETTES = [
+    {
+      id: 'obsidian',
+      name: 'Obsidian',
+      canvas: '#0E0E0E',
+      defaultBlock: '#1A1A1A',
+      tones: ['#1A1A1A', '#202020', '#161616', '#242424']
+    },
+    {
+      id: 'mono-light',
+      name: 'Alabaster',
+      canvas: '#F2F2F2',
+      defaultBlock: '#FFFFFF',
+      tones: ['#FFFFFF', '#E6E6E6', '#F8F8F8', '#DCDCDC']
+    },
+    {
+      id: 'swiss',
+      name: 'Swiss',
+      canvas: '#EBEBE5',
+      defaultBlock: '#141414',
+      tones: ['#141414', '#D7D7CE', '#C83E2B', '#262624']
+    },
+    {
+      id: 'editorial',
+      name: 'Editorial',
+      canvas: '#F3EFE6',
+      defaultBlock: '#E5DDD0',
+      tones: ['#E5DDD0', '#D4C8B4', '#26231F', '#EFE9DD']
+    },
+    {
+      id: 'studio',
+      name: 'Studio',
+      canvas: '#121316',
+      defaultBlock: '#1C1E22',
+      tones: ['#1C1E22', '#25282E', '#181A1E', '#2D3138']
+    }
+  ];
+
+  function createDefaultTextConfig() {
+    return {
+      align: 'left',
+      valign: 'bottom',
+      padding: 32,
+      slots: [
+        { text: 'FEATURED', font: 'JetBrains Mono', size: 18, weight: '500', italic: false, uppercase: true, color: '#8A8A8A' },
+        { text: 'Bento Card', font: 'Space Grotesk', size: 54, weight: '600', italic: false, uppercase: false, color: '#EDEDED' },
+        { text: 'Modular layout with liquid geometry.', font: 'Inter', size: 22, weight: '400', italic: false, uppercase: false, color: '#A0A0A0' }
+      ]
+    };
+  }
+
+  const DEFAULT_BLOCKS = () => [
+    { id: uid(), col: 0, row: 0, colSpan: 5, rowSpan: 7, color: null, radius: null, media: null, text: null },
+    { id: uid(), col: 5, row: 0, colSpan: 4, rowSpan: 4, color: null, radius: null, media: null, text: null },
+    { id: uid(), col: 9, row: 0, colSpan: 3, rowSpan: 4, color: null, radius: null, media: null, text: null },
+    { id: uid(), col: 5, row: 4, colSpan: 7, rowSpan: 4, color: null, radius: null, media: null, text: null },
+    { id: uid(), col: 0, row: 7, colSpan: 5, rowSpan: 5, color: null, radius: null, media: null, text: null },
+    { id: uid(), col: 5, row: 8, colSpan: 7, rowSpan: 4, color: null, radius: null, media: null, text: null }
+  ];
+
+  function uid() {
+    return 'b_' + Math.random().toString(36).slice(2, 9);
+  }
+
+  // Application State
+  const state = {
+    width: 1920,
+    height: 1080,
+    ratioLabel: '16:9',
+    gap: 16,
+    padding: 24,
+    radius: 20,
+    canvasBg: '#0E0E0E',
+    defaultBlockBg: '#1A1A1A',
+    activePalette: 'obsidian',
+    exportMode: 'static',
+    exportDuration: 5,
+    exportHold: 2,
+    selectedId: null,
+    hoveredId: null,
+    framingId: null,
+    activeTextSlot: 1,
+    blocks: DEFAULT_BLOCKS()
+  };
+
+  // Undo/Redo stacks
+  const history = { past: [], future: [] };
+  const MAX_HISTORY = 40;
+
+  // Live DOM elements & decoded animated GIF frame cache
+  const blockNodes = new Map();
+  const gifFramesCache = new Map(); // srcKey -> { frames: ImageBitmap[], delays: number[], totalDuration: number }
+  let stageScale = 1;
+  let stageW = 800;
+  let stageH = 450;
+  let toastTimer = null;
+  let previewRaf = null;
+  let isExporting = false;
+  let uploadTargetId = null;
+
+  // DOM References
+  const el = {
+    mainBody: document.getElementById('mainBody'),
+    btnToggleCanvasExpand: document.getElementById('btnToggleCanvasExpand'),
+    workspace: document.getElementById('workspace'),
+    artboard: document.getElementById('artboard'),
+    gridGuides: document.getElementById('gridGuides'),
+    emptySlotsLayer: document.getElementById('emptySlotsLayer'),
+    dropGhost: document.getElementById('dropGhost'),
+    framingBackdrop: document.getElementById('framingBackdrop'),
+    framingHud: document.getElementById('framingHud'),
+    framingZoomVal: document.getElementById('framingZoomVal'),
+    framingPosVal: document.getElementById('framingPosVal'),
+    framingFitToggle: document.getElementById('framingFitToggle'),
+    btnResetFrame: document.getElementById('btnResetFrame'),
+    btnExitFrame: document.getElementById('btnExitFrame'),
+    ratioBadge: document.getElementById('ratioBadge'),
+    ratioPresets: document.getElementById('ratioPresets'),
+    inputWidth: document.getElementById('inputWidth'),
+    inputHeight: document.getElementById('inputHeight'),
+    sliderGap: document.getElementById('sliderGap'),
+    valGap: document.getElementById('valGap'),
+    sliderPadding: document.getElementById('sliderPadding'),
+    valPadding: document.getElementById('valPadding'),
+    sliderRadius: document.getElementById('sliderRadius'),
+    valRadius: document.getElementById('valRadius'),
+    pickerCanvasBg: document.getElementById('pickerCanvasBg'),
+    hexCanvasBg: document.getElementById('hexCanvasBg'),
+    swatchCanvasBg: document.getElementById('swatchCanvasBg'),
+    pickerBlockBg: document.getElementById('pickerBlockBg'),
+    hexBlockBg: document.getElementById('hexBlockBg'),
+    swatchBlockBg: document.getElementById('swatchBlockBg'),
+    paletteGrid: document.getElementById('paletteGrid'),
+    blockEmptyMsg: document.getElementById('blockEmptyMsg'),
+    blockControls: document.getElementById('blockControls'),
+    blockHeaderActions: document.getElementById('blockHeaderActions'),
+    pickerSelBlock: document.getElementById('pickerSelBlock'),
+    hexSelBlock: document.getElementById('hexSelBlock'),
+    swatchSelBlock: document.getElementById('swatchSelBlock'),
+    btnResetSelColor: document.getElementById('btnResetSelColor'),
+    sliderSelRadius: document.getElementById('sliderSelRadius'),
+    valSelRadius: document.getElementById('valSelRadius'),
+    btnResetSelRadius: document.getElementById('btnResetSelRadius'),
+    mediaFitControls: document.getElementById('mediaFitControls'),
+    inspectorFitToggle: document.getElementById('inspectorFitToggle'),
+    sliderMediaZoom: document.getElementById('sliderMediaZoom'),
+    valMediaZoom: document.getElementById('valMediaZoom'),
+    textPanel: document.getElementById('textPanel'),
+    btnToggleText: document.getElementById('btnToggleText'),
+    btnRemoveText: document.getElementById('btnRemoveText'),
+    textSlotTabs: document.getElementById('textSlotTabs'),
+    inputSlotText: document.getElementById('inputSlotText'),
+    fontPicker: document.getElementById('fontPicker'),
+    fontPickerTrigger: document.getElementById('fontPickerTrigger'),
+    fontPickerLabel: document.getElementById('fontPickerLabel'),
+    fontPickerMenu: document.getElementById('fontPickerMenu'),
+    fontSearchInput: document.getElementById('fontSearchInput'),
+    fontPickerOptions: document.getElementById('fontPickerOptions'),
+    fontPickerStatus: document.getElementById('fontPickerStatus'),
+    btnScanLocalFonts: document.getElementById('btnScanLocalFonts'),
+    inputSlotSize: document.getElementById('inputSlotSize'),
+    selectSlotWeight: document.getElementById('selectSlotWeight'),
+    btnSlotItalic: document.getElementById('btnSlotItalic'),
+    btnSlotUpper: document.getElementById('btnSlotUpper'),
+    swatchSlotColor: document.getElementById('swatchSlotColor'),
+    pickerSlotColor: document.getElementById('pickerSlotColor'),
+    hexSlotColor: document.getElementById('hexSlotColor'),
+    textAlignH: document.getElementById('textAlignH'),
+    textAlignV: document.getElementById('textAlignV'),
+    sliderTextPad: document.getElementById('sliderTextPad'),
+    valTextPad: document.getElementById('valTextPad'),
+    btnUploadMedia: document.getElementById('btnUploadMedia'),
+    btnFrameMedia: document.getElementById('btnFrameMedia'),
+    btnClearMedia: document.getElementById('btnClearMedia'),
+    btnDeleteBlock: document.getElementById('btnDeleteBlock'),
+    btnNew: document.getElementById('btnNew'),
+    btnSave: document.getElementById('btnSave'),
+    btnOpen: document.getElementById('btnOpen'),
+    btnUndo: document.getElementById('btnUndo'),
+    btnRedo: document.getElementById('btnRedo'),
+    btnAddBlock: document.getElementById('btnAddBlock'),
+    btnResetLayout: document.getElementById('btnResetLayout'),
+    btnExportPng: document.getElementById('btnExportPng'),
+    selectExportMode: document.getElementById('selectExportMode'),
+    lblAnimDur: document.getElementById('lblAnimDur'),
+    exportDurationToggle: document.getElementById('exportDurationToggle'),
+    inputCustomDuration: document.getElementById('inputCustomDuration'),
+    holdDurationRow: document.getElementById('holdDurationRow'),
+    exportHoldToggle: document.getElementById('exportHoldToggle'),
+    inputCustomHold: document.getElementById('inputCustomHold'),
+    valTotalDuration: document.getElementById('valTotalDuration'),
+    btnPreviewAnim: document.getElementById('btnPreviewAnim'),
+    previewBtnText: document.getElementById('previewBtnText'),
+    btnExportMp4: document.getElementById('btnExportMp4'),
+    mp4BtnText: document.getElementById('mp4BtnText'),
+    mp4ProgressFill: document.getElementById('mp4ProgressFill'),
+    fileOpenJson: document.getElementById('fileOpenJson'),
+    fileUploadMedia: document.getElementById('fileUploadMedia'),
+    toast: document.getElementById('toast')
+  };
+
+  // --- Animated GIF Frame Decoder (WebCodecs ImageDecoder so GIFs actually animate in Canvas/MP4 exports!) ---
+  function isGifMedia(media) {
+    if (!media) return false;
+    if (media.mime === 'image/gif') return true;
+    if (typeof media.src === 'string' && (media.src.startsWith('data:image/gif') || /\.gif(\?|$)/i.test(media.src))) return true;
+    return false;
+  }
+
+  async function ensureGifDecoded(media) {
+    if (!isGifMedia(media) || typeof ImageDecoder === 'undefined') return null;
+    if (gifFramesCache.has(media.srcKey)) return gifFramesCache.get(media.srcKey);
+
+    try {
+      const res = await fetch(media.src);
+      const buf = await res.arrayBuffer();
+      const decoder = new ImageDecoder({ data: buf, type: 'image/gif' });
+      await decoder.tracks.ready;
+      const track = decoder.tracks.selectedTrack;
+      const count = track ? track.frameCount : 1;
+      if (count <= 1) {
+        decoder.close();
+        return null;
+      }
+
+      const frames = [];
+      const delays = [];
+      let totalDuration = 0;
+
+      for (let i = 0; i < count; i++) {
+        const result = await decoder.decode({ frameIndex: i });
+        const bitmap = await createImageBitmap(result.image);
+        const durMs = Math.max(20, Math.round((result.image.duration || 100000) / 1000));
+        result.image.close();
+        frames.push(bitmap);
+        delays.push(durMs);
+        totalDuration += durMs;
+      }
+      decoder.close();
+
+      const entry = { frames, delays, totalDuration: Math.max(100, totalDuration) };
+      gifFramesCache.set(media.srcKey, entry);
+      return entry;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function getGifBitmapAtTime(srcKey, elapsedMs) {
+    const entry = gifFramesCache.get(srcKey);
+    if (!entry || !entry.frames.length) return null;
+    let t = elapsedMs % entry.totalDuration;
+    for (let i = 0; i < entry.frames.length; i++) {
+      if (t < entry.delays[i]) return entry.frames[i];
+      t -= entry.delays[i];
+    }
+    return entry.frames[0];
+  }
+
+  // Local fonts are queried only after an explicit user gesture.
+  // Priority: installed local fonts, curated Google Fonts, then system fallbacks.
+  function setFontPickerStatus(message) {
+    el.fontPickerStatus.textContent = message;
+  }
+
+  function createFontGroupLabel(label) {
+    const heading = document.createElement('div');
+    heading.className = 'font-group-label';
+    heading.textContent = label;
+    return heading;
+  }
+
+  function createFontOption(font) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'font-option';
+    btn.dataset.font = font.name;
+    btn.setAttribute('role', 'option');
+
+    const sample = document.createElement('span');
+    sample.className = 'font-option-sample';
+    sample.textContent = font.name;
+    sample.style.fontFamily = getFontCssStack(font.name);
+
+    const category = document.createElement('span');
+    category.className = 'font-option-cat';
+    category.textContent = font.cat;
+
+    btn.append(sample, category);
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const ref = getSelectedTextSlot();
+      if (!ref) return;
+      pushHistory();
+      ref.slot.font = font.name;
+      warmFontFace(font.name);
+      el.fontPickerMenu.classList.add('hidden');
+      el.fontPickerTrigger.setAttribute('aria-expanded', 'false');
+      syncInspectorUI();
+      updateAllBlockPositions();
+    });
+    return btn;
+  }
+
+  function buildFontPickerMenu() {
+    if (!el.fontPickerOptions) return;
+    const query = (el.fontSearchInput.value || '').trim().toLocaleLowerCase();
+    el.fontPickerOptions.innerHTML = '';
+
+    const groups = [
+      { label: 'Local system fonts', fonts: [...LOCAL_FONTS.values()].sort((a, b) => a.name.localeCompare(b.name)) },
+      { label: 'Google Fonts', fonts: GOOGLE_FONTS },
+      { label: 'System fallbacks', fonts: FALLBACK_FONTS }
+    ];
+
+    let visibleCount = 0;
+    for (const group of groups) {
+      const matches = group.fonts.filter(font => font.name.toLocaleLowerCase().includes(query));
+      if (!matches.length) continue;
+      el.fontPickerOptions.appendChild(createFontGroupLabel(group.label));
+      for (const font of matches) {
+        el.fontPickerOptions.appendChild(createFontOption(font));
+        visibleCount++;
+      }
+    }
+
+    if (!visibleCount) {
+      const empty = document.createElement('div');
+      empty.className = 'font-picker-status';
+      empty.textContent = 'No matching fonts found.';
+      el.fontPickerOptions.appendChild(empty);
+    }
+
+    const currentFont = getSelectedTextSlot()?.slot?.font;
+    el.fontPickerOptions.querySelectorAll('.font-option').forEach(option => {
+      const active = option.dataset.font === currentFont;
+      option.classList.toggle('active', active);
+      option.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  }
+
+  async function scanLocalFonts() {
+    if (typeof window.queryLocalFonts !== 'function') {
+      setFontPickerStatus('Local font access is not supported in this browser. Google Fonts and system fallbacks are available.');
+      return;
+    }
+    if (!window.isSecureContext) {
+      setFontPickerStatus('Local font access requires HTTPS or localhost.');
+      return;
+    }
+
+    el.btnScanLocalFonts.disabled = true;
+    el.btnScanLocalFonts.textContent = 'Scanning…';
+    setFontPickerStatus('Requesting permission to read installed font names…');
+
+    try {
+      const availableFonts = await window.queryLocalFonts();
+      const uniqueFonts = new Map();
+      for (const font of availableFonts) {
+        const family = String(font.family || font.fullName || '').trim();
+        if (!family || uniqueFonts.has(family)) continue;
+        uniqueFonts.set(family, { name: family, cat: 'Local', fallback: 'sans-serif' });
+      }
+
+      LOCAL_FONTS.clear();
+      for (const [family, font] of uniqueFonts) LOCAL_FONTS.set(family, font);
+
+      setFontPickerStatus(LOCAL_FONTS.size
+        ? `${LOCAL_FONTS.size} installed font families found. Local fonts are listed first.`
+        : 'No installed fonts were returned. Google Fonts and system fallbacks remain available.');
+      buildFontPickerMenu();
+    } catch (error) {
+      setFontPickerStatus(error && error.name === 'NotAllowedError'
+        ? 'Font access was not allowed. Google Fonts and system fallbacks are still available.'
+        : 'Could not read local fonts. Check browser permissions and try again.');
+    } finally {
+      el.btnScanLocalFonts.disabled = false;
+      el.btnScanLocalFonts.textContent = 'Scan local fonts';
+    }
+  }
+
+  buildFontPickerMenu();
+
+  el.fontPickerTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    const opening = el.fontPickerMenu.classList.contains('hidden');
+    el.fontPickerMenu.classList.toggle('hidden', !opening);
+    el.fontPickerTrigger.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    if (opening) {
+      buildFontPickerMenu();
+      el.fontSearchInput.focus();
+    }
+  });
+
+  el.fontSearchInput.addEventListener('input', buildFontPickerMenu);
+  el.btnScanLocalFonts.addEventListener('click', e => {
+    e.stopPropagation();
+    scanLocalFonts();
+  });
+
+  window.addEventListener('click', e => {
+    if (!el.fontPicker.contains(e.target)) {
+      el.fontPickerMenu.classList.add('hidden');
+      el.fontPickerTrigger.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+    // --- Utilities ---
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function gcd(a, b) {
+    a = Math.abs(Math.round(a));
+    b = Math.abs(Math.round(b));
+    while (b) {
+      const t = b;
+      b = a % b;
+      a = t;
+    }
+    return a || 1;
+  }
+
+  function computeRatioLabel(w, h) {
+    const known = [
+      [16, 9], [9, 16], [1, 1], [4, 5], [21, 9], [4, 3], [3, 4], [3, 2], [2, 3], [16, 10]
+    ];
+    const r = w / h;
+    for (const [rw, rh] of known) {
+      if (Math.abs(r - rw / rh) < 0.012) return `${rw}:${rh}`;
+    }
+    const g = gcd(w, h);
+    const sw = Math.round(w / g);
+    const sh = Math.round(h / g);
+    if (sw <= 32 && sh <= 32) return `${sw}:${sh}`;
+    return `${w}×${h}`;
+  }
+
+  function normalizeHex(val) {
+    if (!val) return null;
+    let s = val.trim();
+    if (!s.startsWith('#')) s = '#' + s;
+    if (/^#[0-9A-Fa-f]{3}$/.test(s)) {
+      s = '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
+    }
+    return /^#[0-9A-Fa-f]{6}$/.test(s) ? s.toUpperCase() : null;
+  }
+
+  function showToast(msg, duration = 2600) {
+    el.toast.textContent = msg;
+    el.toast.classList.add('visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      el.toast.classList.remove('visible');
+    }, duration);
+  }
+
+  function easeLiquid(t) {
+    t = clamp(t, 0, 1);
+    let u = t;
+    for (let i = 0; i < 6; i++) {
+      const inv = 1 - u;
+      const x = 3 * inv * inv * u * 0.22 + 3 * inv * u * u * 0.36 + u * u * u;
+      const dx = 3 * inv * inv * 0.22 + 6 * inv * u * (0.36 - 0.22) + 3 * u * u * (1 - 0.36);
+      if (Math.abs(dx) < 1e-6) break;
+      u = clamp(u - (x - t) / dx, 0, 1);
+    }
+    const inv = 1 - u;
+    return 3 * inv * inv * u * 1.0 + 3 * inv * u * u * 1.0 + u * u * u;
+  }
+
+  function easeOutBack(t) {
+    t = clamp(t, 0, 1);
+    const c1 = 1.45;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+  }
+
+  function easeInOutSine(t) {
+    return -(Math.cos(Math.PI * clamp(t, 0, 1)) - 1) / 2;
+  }
+
+  // CORS-safe check (local data:/blob: URLs are always safe without needing getImageData probe)
+  const corsTestCanvas = document.createElement('canvas');
+  corsTestCanvas.width = 1;
+  corsTestCanvas.height = 1;
+  const corsTestCtx = corsTestCanvas.getContext('2d');
+
+  function isMediaCanvasSafe(mediaEl, mediaMeta) {
+    if (!mediaEl) return false;
+    if (mediaMeta && typeof mediaMeta.src === 'string') {
+      if (mediaMeta.src.startsWith('data:') || mediaMeta.src.startsWith('blob:')) return true;
+    }
+    try {
+      corsTestCtx.clearRect(0, 0, 1, 1);
+      corsTestCtx.drawImage(mediaEl, 0, 0, 1, 1);
+      corsTestCtx.getImageData(0, 0, 1, 1);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // --- History ---
+  function snapshotState() {
+    return JSON.stringify({
+      width: state.width,
+      height: state.height,
+      ratioLabel: state.ratioLabel,
+      gap: state.gap,
+      padding: state.padding,
+      radius: state.radius,
+      canvasBg: state.canvasBg,
+      defaultBlockBg: state.defaultBlockBg,
+      activePalette: state.activePalette,
+      blocks: state.blocks
+    });
+  }
+
+  function pushHistory() {
+    const snap = snapshotState();
+    if (history.past.length && history.past[history.past.length - 1] === snap) return;
+    history.past.push(snap);
+    if (history.past.length > MAX_HISTORY) history.past.shift();
+    history.future.length = 0;
+    updateHistoryButtons();
+  }
+
+  function restoreSnapshot(snapStr) {
+    const data = JSON.parse(snapStr);
+    Object.assign(state, data);
+    if (state.selectedId && !state.blocks.some(b => b.id === state.selectedId)) {
+      state.selectedId = null;
+    }
+    state.framingId = null;
+    state.blocks.forEach(b => {
+      if (b.media && isGifMedia(b.media)) ensureGifDecoded(b.media);
+    });
+    syncInspectorUI();
+    layoutStage(true);
+    renderBlocks();
+    updateHistoryButtons();
+  }
+
+  function undo() {
+    if (!history.past.length) return;
+    history.future.push(snapshotState());
+    const prev = history.past.pop();
+    restoreSnapshot(prev);
+  }
+
+  function redo() {
+    if (!history.future.length) return;
+    history.past.push(snapshotState());
+    const next = history.future.pop();
+    restoreSnapshot(next);
+  }
+
+  function updateHistoryButtons() {
+    el.btnUndo.disabled = history.past.length === 0;
+    el.btnRedo.disabled = history.future.length === 0;
+  }
+
+  // --- Geometry & Liquid Cutout Shape Engine ---
+  function getGridMetrics(w, h, scale = 1) {
+    const pad = state.padding * scale;
+    const gap = state.gap * scale;
+    const innerW = Math.max(1, w - pad * 2);
+    const innerH = Math.max(1, h - pad * 2);
+    const cellW = (innerW - gap * (GRID_COLS - 1)) / GRID_COLS;
+    const cellH = (innerH - gap * (GRID_ROWS - 1)) / GRID_ROWS;
+    return { pad, gap, cellW, cellH };
+  }
+
+  function getBlockRect(block, w, h, scale = 1) {
+    const { pad, gap, cellW, cellH } = getGridMetrics(w, h, scale);
+    return {
+      x: pad + block.col * (cellW + gap),
+      y: pad + block.row * (cellH + gap),
+      w: Math.max(4, block.colSpan * cellW + (block.colSpan - 1) * gap),
+      h: Math.max(4, block.rowSpan * cellH + (block.rowSpan - 1) * gap)
+    };
+  }
+
+  function rectsOverlap(a, b) {
+    return a.col < b.col + b.colSpan &&
+           a.col + a.colSpan > b.col &&
+           a.row < b.row + b.rowSpan &&
+           a.row + a.rowSpan > b.row;
+  }
+
+  function computeVisibilityMap(blocksList = state.blocks) {
+    const topOwner = Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(null));
+    for (const b of blocksList) {
+      for (let r = b.row; r < b.row + b.rowSpan; r++) {
+        for (let c = b.col; c < b.col + b.colSpan; c++) {
+          if (r >= 0 && r < GRID_ROWS && c >= 0 && c < GRID_COLS) {
+            topOwner[r][c] = b.id;
+          }
+        }
+      }
+    }
+
+    const visMap = new Map();
+    for (const b of blocksList) {
+      const cells = [];
+      const mask = Array.from({ length: b.rowSpan }, () => Array(b.colSpan).fill(false));
+      for (let dr = 0; dr < b.rowSpan; dr++) {
+        for (let dc = 0; dc < b.colSpan; dc++) {
+          const r = b.row + dr;
+          const c = b.col + dc;
+          if (r >= 0 && r < GRID_ROWS && c >= 0 && c < GRID_COLS && topOwner[r][c] === b.id) {
+            mask[dr][dc] = true;
+            cells.push([dr, dc]);
+          }
+        }
+      }
+      visMap.set(b.id, { mask, count: cells.length, isFullRect: cells.length === b.colSpan * b.rowSpan });
+    }
+    return { topOwner, visMap };
+  }
+
+  function isConnectedSingleLoop(mask, rows, cols) {
+    let start = null;
+    let total = 0;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (mask[r][c]) {
+          total++;
+          if (!start) start = [r, c];
+        }
+      }
+    }
+    if (total === 0) return false;
+
+    const seen = Array.from({ length: rows }, () => Array(cols).fill(false));
+    const q = [start];
+    seen[start[0]][start[1]] = true;
+    let visited = 0;
+    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    while (q.length) {
+      const [r, c] = q.shift();
+      visited++;
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr;
+        const nc = c + dc;
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && mask[nr][nc] && !seen[nr][nc]) {
+          seen[nr][nc] = true;
+          q.push([nr, nc]);
+        }
+      }
+    }
+    if (visited !== total) return false;
+
+    const emptySeen = Array.from({ length: rows }, () => Array(cols).fill(false));
+    const eq = [];
+    const emptyTotal = rows * cols - total;
+    if (emptyTotal === 0) return true;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (!mask[r][c] && (r === 0 || r === rows - 1 || c === 0 || c === cols - 1)) {
+          emptySeen[r][c] = true;
+          eq.push([r, c]);
+        }
+      }
+    }
+    let emptyVisited = 0;
+    while (eq.length) {
+      const [r, c] = eq.shift();
+      emptyVisited++;
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr;
+        const nc = c + dc;
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !mask[nr][nc] && !emptySeen[nr][nc]) {
+          emptySeen[nr][nc] = true;
+          eq.push([nr, nc]);
+        }
+      }
+    }
+    return emptyVisited === emptyTotal;
+  }
+
+  function validateOverlapLayout(blocksList) {
+    const { visMap } = computeVisibilityMap(blocksList);
+    for (const b of blocksList) {
+      const info = visMap.get(b.id);
+      if (!info || info.count < 1) return false;
+      if (!info.isFullRect && !isConnectedSingleLoop(info.mask, b.rowSpan, b.colSpan)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function traceBlockLocalPolygon(block, visInfo, w, h, scale = 1) {
+    const rect = getBlockRect(block, w, h, scale);
+    if (!visInfo || visInfo.isFullRect) {
+      return [
+        { x: 0, y: 0 },
+        { x: rect.w, y: 0 },
+        { x: rect.w, y: rect.h },
+        { x: 0, y: rect.h }
+      ];
+    }
+
+    const { gap, cellW, cellH } = getGridMetrics(w, h, scale);
+    const R = block.rowSpan;
+    const C = block.colSpan;
+    const subR = 2 * R - 1;
+    const subC = 2 * C - 1;
+    const mask = visInfo.mask;
+
+    const M = Array.from({ length: subR }, () => Array(subC).fill(false));
+    for (let r = 0; r < R; r++) {
+      for (let c = 0; c < C; c++) {
+        if (mask[r][c]) M[2 * r][2 * c] = true;
+        if (c + 1 < C && mask[r][c] && mask[r][c + 1]) M[2 * r][2 * c + 1] = true;
+        if (r + 1 < R && mask[r][c] && mask[r + 1][c]) M[2 * r + 1][2 * c] = true;
+        if (r + 1 < R && c + 1 < C && mask[r][c] && mask[r][c + 1] && mask[r + 1][c] && mask[r + 1][c + 1]) {
+          M[2 * r + 1][2 * c + 1] = true;
+        }
+      }
+    }
+
+    const xs = new Array(subC + 1);
+    for (let c = 0; c < C; c++) {
+      xs[2 * c] = c * (cellW + gap);
+      xs[2 * c + 1] = c * (cellW + gap) + cellW;
+    }
+    const ys = new Array(subR + 1);
+    for (let r = 0; r < R; r++) {
+      ys[2 * r] = r * (cellH + gap);
+      ys[2 * r + 1] = r * (cellH + gap) + cellH;
+    }
+
+    const nextMap = new Map();
+    const key = (x, y) => `${x},${y}`;
+    const addEdge = (x1, y1, x2, y2) => {
+      const k = key(x1, y1);
+      if (!nextMap.has(k)) nextMap.set(k, []);
+      nextMap.get(k).push([x2, y2]);
+    };
+
+    for (let sy = 0; sy < subR; sy++) {
+      for (let sx = 0; sx < subC; sx++) {
+        if (!M[sy][sx]) continue;
+        if (sy === 0 || !M[sy - 1][sx]) addEdge(sx, sy, sx + 1, sy);
+        if (sx === subC - 1 || !M[sy][sx + 1]) addEdge(sx + 1, sy, sx + 1, sy + 1);
+        if (sy === subR - 1 || !M[sy + 1][sx]) addEdge(sx + 1, sy + 1, sx, sy + 1);
+        if (sx === 0 || !M[sy][sx - 1]) addEdge(sx, sy + 1, sx, sy);
+      }
+    }
+
+    const firstKey = nextMap.keys().next().value;
+    if (!firstKey) {
+      return [
+        { x: 0, y: 0 },
+        { x: rect.w, y: 0 },
+        { x: rect.w, y: rect.h },
+        { x: 0, y: rect.h }
+      ];
+    }
+
+    const [startX, startY] = firstKey.split(',').map(Number);
+    const raw = [];
+    let cx = startX;
+    let cy = startY;
+    let prevDx = 0;
+    let prevDy = 0;
+    let guard = 0;
+
+    while (guard++ < 4000) {
+      raw.push([cx, cy]);
+      const opts = nextMap.get(key(cx, cy));
+      if (!opts || !opts.length) break;
+      let chosenIdx = 0;
+      if (opts.length > 1) {
+        for (let i = 0; i < opts.length; i++) {
+          const dx = opts[i][0] - cx;
+          const dy = opts[i][1] - cy;
+          if (dx === -prevDy && dy === prevDx) {
+            chosenIdx = i;
+            break;
+          }
+        }
+      }
+      const [nx, ny] = opts.splice(chosenIdx, 1)[0];
+      prevDx = nx - cx;
+      prevDy = ny - cy;
+      cx = nx;
+      cy = ny;
+      if (cx === startX && cy === startY) break;
+    }
+
+    const pts = [];
+    const n = raw.length;
+    for (let i = 0; i < n; i++) {
+      const p0 = raw[(i - 1 + n) % n];
+      const p1 = raw[i];
+      const p2 = raw[(i + 1) % n];
+      const colinX = p0[0] === p1[0] && p1[0] === p2[0];
+      const colinY = p0[1] === p1[1] && p1[1] === p2[1];
+      if (!colinX && !colinY) {
+        pts.push({ x: xs[p1[0]], y: ys[p1[1]] });
+      }
+    }
+
+    return pts.length >= 4 ? pts : [
+      { x: 0, y: 0 },
+      { x: rect.w, y: 0 },
+      { x: rect.w, y: rect.h },
+      { x: 0, y: rect.h }
+    ];
+  }
+
+  function polygonToRoundedSvgPath(pts, radius) {
+    const n = pts.length;
+    if (n < 3) return '';
+    const cmds = [];
+    const r = Math.max(0, radius);
+
+    for (let i = 0; i < n; i++) {
+      const prev = pts[(i - 1 + n) % n];
+      const curr = pts[i];
+      const next = pts[(i + 1) % n];
+
+      const v1x = prev.x - curr.x;
+      const v1y = prev.y - curr.y;
+      const len1 = Math.hypot(v1x, v1y);
+
+      const v2x = next.x - curr.x;
+      const v2y = next.y - curr.y;
+      const len2 = Math.hypot(v2x, v2y);
+
+      const rad = Math.min(r, len1 / 2, len2 / 2);
+
+      const pStartX = curr.x + (v1x / (len1 || 1)) * rad;
+      const pStartY = curr.y + (v1y / (len1 || 1)) * rad;
+      const pEndX = curr.x + (v2x / (len2 || 1)) * rad;
+      const pEndY = curr.y + (v2y / (len2 || 1)) * rad;
+
+      const cross = (-v1x) * v2y - (-v1y) * v2x;
+      const sweep = cross >= 0 ? 1 : 0;
+
+      if (i === 0) cmds.push(`M ${pStartX.toFixed(2)} ${pStartY.toFixed(2)}`);
+      else cmds.push(`L ${pStartX.toFixed(2)} ${pStartY.toFixed(2)}`);
+
+      if (rad > 0.25) {
+        cmds.push(`A ${rad.toFixed(2)} ${rad.toFixed(2)} 0 0 ${sweep} ${pEndX.toFixed(2)} ${pEndY.toFixed(2)}`);
+      } else {
+        cmds.push(`L ${curr.x.toFixed(2)} ${curr.y.toFixed(2)}`);
+      }
+    }
+    cmds.push('Z');
+    return cmds.join(' ');
+  }
+
+  function traceRoundedPolygonCanvas(ctx, pts, radius) {
+    const n = pts.length;
+    if (n < 3) return;
+    const r = Math.max(0, radius);
+    ctx.beginPath();
+
+    for (let i = 0; i < n; i++) {
+      const prev = pts[(i - 1 + n) % n];
+      const curr = pts[i];
+      const next = pts[(i + 1) % n];
+
+      const v1x = prev.x - curr.x;
+      const v1y = prev.y - curr.y;
+      const len1 = Math.hypot(v1x, v1y);
+
+      const v2x = next.x - curr.x;
+      const v2y = next.y - curr.y;
+      const len2 = Math.hypot(v2x, v2y);
+
+      const rad = Math.min(r, len1 / 2, len2 / 2);
+      const pStartX = curr.x + (v1x / (len1 || 1)) * rad;
+      const pStartY = curr.y + (v1y / (len1 || 1)) * rad;
+
+      if (i === 0) ctx.moveTo(pStartX, pStartY);
+      else ctx.lineTo(pStartX, pStartY);
+
+      if (rad > 0.25) ctx.arcTo(curr.x, curr.y, next.x, next.y, rad);
+      else ctx.lineTo(curr.x, curr.y);
+    }
+    ctx.closePath();
+  }
+
+  // --- Unified Media Geometry ---
+  function computeMediaDrawBox(mw, mh, cw, ch, posX, posY, scale, fitMode) {
+    if (!mw || !mh) return { dx: 0, dy: 0, dw: cw, dh: ch };
+    const baseScale = fitMode === 'contain'
+      ? Math.min(cw / mw, ch / mh)
+      : Math.max(cw / mw, ch / mh);
+    const dw = mw * baseScale * scale;
+    const dh = mh * baseScale * scale;
+    const dx = (posX / 100) * (cw - dw);
+    const dy = (posY / 100) * (ch - dh);
+    return { dx, dy, dw, dh };
+  }
+
+  // --- Empty Area Detection & Interactive (+) Slots ---
+  function findEmptyRectangles() {
+    const { topOwner } = computeVisibilityMap();
+    const used = Array.from({ length: GRID_ROWS }, (_, r) =>
+      Array.from({ length: GRID_COLS }, (_, c) => topOwner[r][c] !== null)
+    );
+
+    const rects = [];
+    while (true) {
+      let best = null;
+      for (let r = 0; r < GRID_ROWS; r++) {
+        for (let c = 0; c < GRID_COLS; c++) {
+          if (used[r][c]) continue;
+          let maxW = 0;
+          while (c + maxW < GRID_COLS && !used[r][c + maxW]) maxW++;
+          let curW = maxW;
+          for (let h = 1; r + h <= GRID_ROWS; h++) {
+            let rowW = 0;
+            while (rowW < curW && !used[r + h - 1][c + rowW]) rowW++;
+            curW = rowW;
+            if (curW === 0) break;
+            const area = curW * h;
+            if (!best || area > best.area) {
+              best = { col: c, row: r, colSpan: curW, rowSpan: h, area };
+            }
+          }
+        }
+      }
+      if (!best) break;
+      rects.push(best);
+      for (let r = best.row; r < best.row + best.rowSpan; r++) {
+        for (let c = best.col; c < best.col + best.colSpan; c++) {
+          used[r][c] = true;
+        }
+      }
+    }
+    return rects;
+  }
+
+  function renderEmptySlots() {
+    const emptyRects = findEmptyRectangles();
+    el.emptySlotsLayer.innerHTML = '';
+
+    for (const slot of emptyRects) {
+      const rect = getBlockRect(slot, stageW, stageH, stageScale);
+      const rad = state.radius * stageScale;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'empty-slot-btn';
+      btn.title = 'Add block here';
+      btn.style.left = rect.x + 'px';
+      btn.style.top = rect.y + 'px';
+      btn.style.width = rect.w + 'px';
+      btn.style.height = rect.h + 'px';
+      btn.style.borderRadius = rad + 'px';
+      btn.innerHTML = `<span class="empty-slot-plus"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5v9M3.5 8h9"/></svg></span>`;
+
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        addBlockInRect(slot);
+      });
+
+      btn.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        btn.classList.add('drag-over');
+      });
+      btn.addEventListener('dragleave', e => {
+        e.stopPropagation();
+        btn.classList.remove('drag-over');
+      });
+      btn.addEventListener('drop', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        btn.classList.remove('drag-over');
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        const nb = addBlockInRect(slot);
+        if (file && nb) attachMediaFileToBlock(nb.id, file);
+      });
+
+      el.emptySlotsLayer.appendChild(btn);
+    }
+  }
+
+  function addBlockInRect(slot) {
+    pushHistory();
+    const nb = {
+      id: uid(),
+      col: slot.col,
+      row: slot.row,
+      colSpan: slot.colSpan,
+      rowSpan: slot.rowSpan,
+      color: null,
+      radius: null,
+      media: null,
+      text: null
+    };
+    state.blocks.push(nb);
+    state.selectedId = nb.id;
+    renderBlocks();
+    syncInspectorUI();
+    return nb;
+  }
+
+  // --- Responsive Aspect-Ratio Auto-Reflow ---
+  function reflowBlocksForAspect(newW, newH) {
+    const n = state.blocks.length;
+    if (n === 0) return;
+
+    const items = state.blocks.map(b => ({
+      block: b,
+      weight: Math.max(4, b.colSpan * b.rowSpan)
+    }));
+
+    function partition(list, col, row, colSpan, rowSpan) {
+      if (list.length === 1) {
+        const b = list[0].block;
+        b.col = col;
+        b.row = row;
+        b.colSpan = colSpan;
+        b.rowSpan = rowSpan;
+        return;
+      }
+
+      const pixW = colSpan * (newW / GRID_COLS);
+      const pixH = rowSpan * (newH / GRID_ROWS);
+      let splitHoriz = pixW >= pixH;
+      if (splitHoriz && colSpan < 2) splitHoriz = false;
+      if (!splitHoriz && rowSpan < 2) splitHoriz = true;
+
+      const totalW = list.reduce((s, it) => s + it.weight, 0);
+      let acc = 0;
+      let splitIdx = 1;
+      let bestDiff = Infinity;
+      for (let i = 1; i < list.length; i++) {
+        acc += list[i - 1].weight;
+        const diff = Math.abs(acc / totalW - 0.5);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          splitIdx = i;
+        }
+      }
+
+      const groupA = list.slice(0, splitIdx);
+      const groupB = list.slice(splitIdx);
+      const wA = groupA.reduce((s, it) => s + it.weight, 0);
+      const ratioA = wA / totalW;
+
+      if (splitHoriz) {
+        const minA = Math.min(colSpan - 1, 2);
+        const maxA = Math.max(1, colSpan - 2);
+        let spanA = clamp(Math.round(colSpan * ratioA), Math.min(minA, colSpan - 1), Math.max(1, maxA));
+        if (spanA < 1) spanA = 1;
+        if (colSpan - spanA < 1) spanA = colSpan - 1;
+        partition(groupA, col, row, spanA, rowSpan);
+        partition(groupB, col + spanA, row, colSpan - spanA, rowSpan);
+      } else {
+        const minA = Math.min(rowSpan - 1, 2);
+        const maxA = Math.max(1, rowSpan - 2);
+        let spanA = clamp(Math.round(rowSpan * ratioA), Math.min(minA, rowSpan - 1), Math.max(1, maxA));
+        if (spanA < 1) spanA = 1;
+        if (rowSpan - spanA < 1) spanA = rowSpan - 1;
+        partition(groupA, col, row, colSpan, spanA);
+        partition(groupB, col, row + spanA, colSpan, rowSpan - spanA);
+      }
+    }
+
+    partition(items, 0, 0, GRID_COLS, GRID_ROWS);
+  }
+
+  function applyAspectChange(newW, newH, newLabel) {
+    const oldAspect = state.width / state.height;
+    const newAspect = newW / newH;
+    const ratioDelta = Math.abs(Math.log(newAspect / oldAspect));
+
+    pushHistory();
+    state.width = newW;
+    state.height = newH;
+    state.ratioLabel = newLabel;
+
+    if (ratioDelta > 0.22) {
+      reflowBlocksForAspect(newW, newH);
+    }
+
+    syncInspectorUI();
+    layoutStage(false);
+  }
+
+  // --- Stage Layout ---
+  function layoutStage(instant = false) {
+    const wsRect = el.workspace.getBoundingClientRect();
+    const compact = wsRect.width < 560 || wsRect.height < 420;
+    const padX = compact ? 24 : 56;
+    const padY = compact ? 40 : 72;
+    const availW = Math.max(120, wsRect.width - padX);
+    const availH = Math.max(110, wsRect.height - padY);
+    const aspect = state.width / state.height;
+
+    let w = availW;
+    let h = w / aspect;
+    if (h > availH) {
+      h = availH;
+      w = h * aspect;
+    }
+
+    stageW = Math.round(w);
+    stageH = Math.round(h);
+    stageScale = stageW / state.width;
+
+    if (instant) el.artboard.classList.add('no-transition');
+    el.artboard.style.width = stageW + 'px';
+    el.artboard.style.height = stageH + 'px';
+    el.artboard.style.backgroundColor = state.canvasBg;
+    if (instant) {
+      void el.artboard.offsetWidth;
+      el.artboard.classList.remove('no-transition');
+    }
+
+    el.ratioBadge.textContent = `${state.ratioLabel} ratio`;
+    renderGridGuides();
+    updateAllBlockPositions();
+  }
+
+  function renderGridGuides() {
+    const { pad, gap, cellW, cellH } = getGridMetrics(stageW, stageH, stageScale);
+    if (el.gridGuides.childElementCount !== GRID_COLS * GRID_ROWS) {
+      el.gridGuides.innerHTML = '';
+      for (let r = 0; r < GRID_ROWS; r++) {
+        for (let c = 0; c < GRID_COLS; c++) {
+          const d = document.createElement('div');
+          d.className = 'guide-cell';
+          el.gridGuides.appendChild(d);
+        }
+      }
+    }
+    const children = el.gridGuides.children;
+    let idx = 0;
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < GRID_COLS; c++) {
+        const node = children[idx++];
+        node.style.left = (pad + c * (cellW + gap)) + 'px';
+        node.style.top = (pad + r * (cellH + gap)) + 'px';
+        node.style.width = Math.max(1, cellW) + 'px';
+        node.style.height = Math.max(1, cellH) + 'px';
+      }
+    }
+  }
+
+  // --- Add / Delete Blocks ---
+  function addBlock() {
+    const emptyRects = findEmptyRectangles();
+    if (emptyRects.length > 0) {
+      addBlockInRect(emptyRects[0]);
+      return;
+    }
+
+    let target = state.blocks.find(b => b.id === state.selectedId);
+    if (!target || (target.colSpan < 2 && target.rowSpan < 2)) {
+      target = [...state.blocks]
+        .filter(b => b.colSpan >= 2 || b.rowSpan >= 2)
+        .sort((a, b) => (b.colSpan * b.rowSpan) - (a.colSpan * a.rowSpan))[0];
+    }
+
+    if (!target) {
+      showToast('Grid is full — delete or resize a block first');
+      return;
+    }
+
+    pushHistory();
+    let nb;
+    const pixW = target.colSpan * (state.width / GRID_COLS);
+    const pixH = target.rowSpan * (state.height / GRID_ROWS);
+    const splitHoriz = (pixW >= pixH && target.colSpan >= 2) || target.rowSpan < 2;
+
+    if (splitHoriz) {
+      const leftSpan = Math.floor(target.colSpan / 2);
+      const rightSpan = target.colSpan - leftSpan;
+      nb = {
+        id: uid(),
+        col: target.col + leftSpan,
+        row: target.row,
+        colSpan: rightSpan,
+        rowSpan: target.rowSpan,
+        color: null,
+        radius: null,
+        media: null,
+        text: null
+      };
+      target.colSpan = leftSpan;
+    } else {
+      const topSpan = Math.floor(target.rowSpan / 2);
+      const botSpan = target.rowSpan - topSpan;
+      nb = {
+        id: uid(),
+        col: target.col,
+        row: target.row + topSpan,
+        colSpan: target.colSpan,
+        rowSpan: botSpan,
+        color: null,
+        radius: null,
+        media: null,
+        text: null
+      };
+      target.rowSpan = topSpan;
+    }
+
+    state.blocks.push(nb);
+    state.selectedId = nb.id;
+    renderBlocks();
+    syncInspectorUI();
+  }
+
+  function deleteBlock(id) {
+    if (state.blocks.length <= 1) {
+      showToast('Keep at least one block');
+      return;
+    }
+    pushHistory();
+    state.blocks = state.blocks.filter(b => b.id !== id);
+    if (state.selectedId === id) state.selectedId = null;
+    if (state.framingId === id) exitFramingMode();
+    renderBlocks();
+    syncInspectorUI();
+  }
+
+  function bringBlockToFront(blockId) {
+    const idx = state.blocks.findIndex(b => b.id === blockId);
+    if (idx === -1 || idx === state.blocks.length - 1) return;
+    const [b] = state.blocks.splice(idx, 1);
+    state.blocks.push(b);
+  }
+
+  // --- Rendering Blocks ---
+  function createBlockElement(block) {
+    const div = document.createElement('div');
+    div.className = 'bento-block';
+    div.dataset.id = block.id;
+
+    const surface = document.createElement('div');
+    surface.className = 'block-surface';
+
+    const textLayer = document.createElement('div');
+    textLayer.className = 'block-text-layer';
+    surface.appendChild(textLayer);
+
+    const hint = document.createElement('div');
+    hint.className = 'block-empty-hint';
+    hint.innerHTML = `<div class="block-empty-badge"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M8 3.5v9M3.5 8h9"/></svg></div>`;
+    surface.appendChild(hint);
+    div.appendChild(surface);
+
+    const outlineSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    outlineSvg.setAttribute('class', 'block-outline-svg');
+    const outlinePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    outlinePath.setAttribute('class', 'block-outline-path');
+    outlineSvg.appendChild(outlinePath);
+    div.appendChild(outlineSvg);
+
+    const qbar = document.createElement('div');
+    qbar.className = 'block-quick-bar';
+    qbar.innerHTML = `
+      <button class="quick-pill" data-action="text" title="Add / edit text">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4V3h9v1M8 3v10M6 13h4"/></svg>
+      </button>
+      <button class="quick-pill" data-action="upload" title="Add media">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><circle cx="5.5" cy="6" r="1"/><path d="M2.5 11.5 6 8l2.5 2.5L11 8l2.5 3"/></svg>
+      </button>
+      <button class="quick-pill" data-action="delete" title="Remove block">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>
+      </button>
+    `;
+    div.appendChild(qbar);
+
+    for (const dir of ['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se']) {
+      const h = document.createElement('div');
+      h.className = `resize-handle resize-${dir}`;
+      h.dataset.dir = dir;
+      div.appendChild(h);
+    }
+
+    div.addEventListener('pointerenter', () => { state.hoveredId = block.id; });
+    div.addEventListener('pointerleave', () => {
+      if (state.hoveredId === block.id) state.hoveredId = null;
+    });
+
+    qbar.addEventListener('pointerdown', e => e.stopPropagation());
+    qbar.addEventListener('click', e => {
+      e.stopPropagation();
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const act = btn.dataset.action;
+      if (act === 'upload') {
+        uploadTargetId = block.id;
+        el.fileUploadMedia.value = '';
+        el.fileUploadMedia.click();
+      } else if (act === 'text') {
+        state.selectedId = block.id;
+        const b = state.blocks.find(x => x.id === block.id);
+        if (b && !b.text) {
+          pushHistory();
+          b.text = createDefaultTextConfig();
+          b.text.slots.forEach(s => warmFontFace(s.font));
+        }
+        renderBlocks();
+        syncInspectorUI();
+      } else if (act === 'delete') {
+        deleteBlock(block.id);
+      }
+    });
+
+    div.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      const current = state.blocks.find(b => b.id === block.id);
+      if (!current) return;
+      if (current.media) {
+        if (state.framingId === block.id) exitFramingMode();
+        else enterFramingMode(block.id);
+      } else {
+        uploadTargetId = block.id;
+        el.fileUploadMedia.value = '';
+        el.fileUploadMedia.click();
+      }
+    });
+
+    div.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      div.classList.add('drag-over');
+    });
+    div.addEventListener('dragleave', e => {
+      e.stopPropagation();
+      div.classList.remove('drag-over');
+    });
+    div.addEventListener('drop', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      div.classList.remove('drag-over');
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) attachMediaFileToBlock(block.id, file);
+    });
+
+    div.addEventListener('pointerdown', e => onBlockPointerDown(e, block.id));
+    div.addEventListener('wheel', e => onBlockWheel(e, block.id), { passive: false });
+
+    return div;
+  }
+
+  function applyMediaLayoutDOM(mediaEl, block, rect) {
+    if (!mediaEl || !block.media) return;
+    const mw = mediaEl.tagName === 'VIDEO' ? mediaEl.videoWidth : mediaEl.naturalWidth;
+    const mh = mediaEl.tagName === 'VIDEO' ? mediaEl.videoHeight : mediaEl.naturalHeight;
+    if (!mw || !mh) return;
+    const box = computeMediaDrawBox(
+      mw,
+      mh,
+      rect.w,
+      rect.h,
+      block.media.posX ?? 50,
+      block.media.posY ?? 50,
+      block.media.scale ?? 1,
+      block.media.fitMode || 'cover'
+    );
+    mediaEl.style.left = box.dx.toFixed(2) + 'px';
+    mediaEl.style.top = box.dy.toFixed(2) + 'px';
+    mediaEl.style.width = box.dw.toFixed(2) + 'px';
+    mediaEl.style.height = box.dh.toFixed(2) + 'px';
+  }
+
+  function syncBlockTextDOM(div, block) {
+    const textLayer = div.querySelector('.block-text-layer');
+    if (!textLayer) return;
+    if (!block.text || !Array.isArray(block.text.slots)) {
+      textLayer.innerHTML = '';
+      return;
+    }
+
+    const t = block.text;
+    const padPx = (t.padding ?? 28) * stageScale;
+    textLayer.style.padding = `${padPx}px`;
+    textLayer.style.textAlign = t.align || 'left';
+    textLayer.style.alignItems = t.align === 'center' ? 'center' : (t.align === 'right' ? 'flex-end' : 'flex-start');
+    textLayer.style.justifyContent = t.valign === 'top' ? 'flex-start' : (t.valign === 'bottom' ? 'flex-end' : 'center');
+    textLayer.style.gap = `${Math.max(2, 8 * stageScale)}px`;
+
+    textLayer.innerHTML = '';
+    for (const slot of t.slots) {
+      if (!slot.text || !slot.text.trim()) continue;
+      const p = document.createElement('div');
+      p.className = 'block-text-slot';
+      p.textContent = slot.uppercase ? slot.text.toUpperCase() : slot.text;
+      p.style.fontFamily = getFontCssStack(slot.font || 'Inter');
+      p.style.fontSize = `${Math.max(6, slot.size * stageScale)}px`;
+      p.style.fontWeight = slot.weight || '500';
+      p.style.fontStyle = slot.italic ? 'italic' : 'normal';
+      p.style.color = slot.color || '#EDEDED';
+      p.style.lineHeight = slot.size >= 40 ? '1.08' : '1.32';
+      p.style.letterSpacing = slot.uppercase ? '0.08em' : (slot.size >= 40 ? '-0.025em' : '0');
+      textLayer.appendChild(p);
+    }
+  }
+
+  function syncBlockMediaDOM(div, block, rect) {
+    const surface = div.querySelector('.block-surface');
+    const existing = surface.querySelector('.block-media');
+    const hint = surface.querySelector('.block-empty-hint');
+    const hasText = block.text && block.text.slots.some(s => s.text && s.text.trim());
+
+    if (!block.media) {
+      if (existing) existing.remove();
+      if (hint) hint.style.display = hasText ? 'none' : 'flex';
+      return;
+    }
+
+    if (hint) hint.style.display = 'none';
+    const wantTag = block.media.type === 'video' ? 'VIDEO' : 'IMG';
+    let mediaEl = existing;
+
+    if (!mediaEl || mediaEl.tagName !== wantTag || mediaEl.dataset.srcKey !== block.media.srcKey) {
+      if (existing) existing.remove();
+      if (wantTag === 'VIDEO') {
+        mediaEl = document.createElement('video');
+        mediaEl.autoplay = true;
+        mediaEl.loop = true;
+        mediaEl.muted = true;
+        mediaEl.playsInline = true;
+        mediaEl.preload = 'auto';
+        mediaEl.src = block.media.src;
+        mediaEl.addEventListener('loadedmetadata', () => {
+          const curRect = getBlockRect(block, stageW, stageH, stageScale);
+          applyMediaLayoutDOM(mediaEl, block, curRect);
+          mediaEl.play().catch(() => {});
+        });
+        mediaEl.play().catch(() => {});
+      } else {
+        mediaEl = document.createElement('img');
+        if (block.media.isRemote) {
+          mediaEl.crossOrigin = 'anonymous';
+          mediaEl.onerror = () => {
+            if (mediaEl.crossOrigin) {
+              mediaEl.crossOrigin = null;
+              mediaEl.removeAttribute('crossorigin');
+              mediaEl.src = block.media.src;
+            }
+          };
+        }
+        mediaEl.onload = () => {
+          const curRect = getBlockRect(block, stageW, stageH, stageScale);
+          applyMediaLayoutDOM(mediaEl, block, curRect);
+        };
+        mediaEl.src = block.media.src;
+        mediaEl.draggable = false;
+        if (isGifMedia(block.media)) {
+          ensureGifDecoded(block.media);
+        }
+      }
+      mediaEl.className = 'block-media';
+      mediaEl.dataset.srcKey = block.media.srcKey;
+      surface.insertBefore(mediaEl, surface.firstChild);
+    }
+
+    applyMediaLayoutDOM(mediaEl, block, rect || getBlockRect(block, stageW, stageH, stageScale));
+  }
+
+  function renderBlocks() {
+    const validIds = new Set(state.blocks.map(b => b.id));
+    for (const [id, node] of blockNodes.entries()) {
+      if (!validIds.has(id)) {
+        node.remove();
+        blockNodes.delete(id);
+      }
+    }
+
+    for (let i = 0; i < state.blocks.length; i++) {
+      const block = state.blocks[i];
+      let div = blockNodes.get(block.id);
+      if (!div) {
+        div = createBlockElement(block);
+        blockNodes.set(block.id, div);
+        el.artboard.appendChild(div);
+      }
+      div.classList.toggle('selected', state.selectedId === block.id);
+      div.classList.toggle('framing', state.framingId === block.id);
+      div.style.zIndex = 5 + i;
+    }
+
+    updateAllBlockPositions();
+  }
+
+  function updateAllBlockPositions() {
+    const { visMap } = computeVisibilityMap();
+
+    for (let i = 0; i < state.blocks.length; i++) {
+      const block = state.blocks[i];
+      const div = blockNodes.get(block.id);
+      if (!div) continue;
+      const surface = div.querySelector('.block-surface');
+      const outlinePath = div.querySelector('.block-outline-path');
+      const rect = getBlockRect(block, stageW, stageH, stageScale);
+      const rad = (block.radius !== null && block.radius !== undefined ? block.radius : state.radius) * stageScale;
+      const visInfo = visMap.get(block.id);
+
+      div.style.left = rect.x + 'px';
+      div.style.top = rect.y + 'px';
+      div.style.width = rect.w + 'px';
+      div.style.height = rect.h + 'px';
+      div.style.zIndex = 5 + i;
+
+      surface.style.backgroundColor = block.color || state.defaultBlockBg;
+
+      const pts = traceBlockLocalPolygon(block, visInfo, stageW, stageH, stageScale);
+      const pathStr = polygonToRoundedSvgPath(pts, rad);
+
+      if (visInfo && !visInfo.isFullRect) {
+        surface.style.borderRadius = '0px';
+        surface.style.clipPath = `path('${pathStr}')`;
+      } else {
+        surface.style.clipPath = 'none';
+        surface.style.borderRadius = rad + 'px';
+      }
+
+      if (outlinePath) {
+        outlinePath.setAttribute('d', pathStr);
+      }
+
+      syncBlockMediaDOM(div, block, rect);
+      syncBlockTextDOM(div, block);
+    }
+
+    renderEmptySlots();
+  }
+
+  // --- Drag, Resize & Framing Interactions ---
+  function onBlockPointerDown(e, blockId) {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+
+    const block = state.blocks.find(b => b.id === blockId);
+    if (!block) return;
+
+    if (state.framingId && state.framingId !== blockId) {
+      exitFramingMode();
+    }
+
+    state.selectedId = blockId;
+    renderBlocks();
+    syncInspectorUI();
+
+    if (state.framingId === blockId && block.media) {
+      e.preventDefault();
+      startFramingPan(e, block);
+      return;
+    }
+
+    const handle = e.target.closest('.resize-handle');
+    if (handle) {
+      e.preventDefault();
+      startResize(e, block, handle.dataset.dir);
+      return;
+    }
+
+    startDragBlock(e, block);
+  }
+
+  function startDragBlock(e, block) {
+    const div = blockNodes.get(block.id);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const origRect = getBlockRect(block, stageW, stageH, stageScale);
+    let dragging = false;
+    let targetAction = null;
+
+    function onMove(ev) {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (!dragging && Math.hypot(dx, dy) > 4) {
+        dragging = true;
+        div.classList.add('dragging');
+        el.artboard.classList.add('show-guides');
+      }
+      if (!dragging) return;
+
+      const curLeft = origRect.x + dx;
+      const curTop = origRect.y + dy;
+      div.style.left = curLeft + 'px';
+      div.style.top = curTop + 'px';
+
+      const abRect = el.artboard.getBoundingClientRect();
+      const relX = ev.clientX - abRect.left;
+      const relY = ev.clientY - abRect.top;
+      const { pad, gap, cellW, cellH } = getGridMetrics(stageW, stageH, stageScale);
+
+      const snapCol = clamp(Math.round((curLeft - pad) / (cellW + gap)), 0, GRID_COLS - block.colSpan);
+      const snapRow = clamp(Math.round((curTop - pad) / (cellH + gap)), 0, GRID_ROWS - block.rowSpan);
+      const candidate = { col: snapCol, row: snapRow, colSpan: block.colSpan, rowSpan: block.rowSpan };
+
+      let hoveredOther = null;
+      for (let i = state.blocks.length - 1; i >= 0; i--) {
+        const other = state.blocks[i];
+        if (other.id === block.id) continue;
+        const r = getBlockRect(other, stageW, stageH, stageScale);
+        if (relX >= r.x && relX <= r.x + r.w && relY >= r.y && relY <= r.y + r.h) {
+          hoveredOther = other;
+          break;
+        }
+      }
+
+      const collides = state.blocks.some(o => o.id !== block.id && rectsOverlap(candidate, o));
+
+      if (!collides) {
+        targetAction = { type: 'move', col: snapCol, row: snapRow };
+        const gr = getBlockRect(candidate, stageW, stageH, stageScale);
+        showDropGhost(gr, block.radius !== null ? block.radius : state.radius);
+      } else if (hoveredOther) {
+        const isSmaller = (block.colSpan * block.rowSpan) < (hoveredOther.colSpan * hoveredOther.rowSpan);
+        const testList = state.blocks.filter(b => b.id !== block.id).map(b => ({ ...b }));
+        testList.push({ ...block, col: snapCol, row: snapRow });
+        const hr = getBlockRect(hoveredOther, stageW, stageH, stageScale);
+        const nearCenter =
+          Math.abs(relX - (hr.x + hr.w / 2)) < hr.w * 0.25 &&
+          Math.abs(relY - (hr.y + hr.h / 2)) < hr.h * 0.25;
+
+        if (isSmaller && !nearCenter && validateOverlapLayout(testList)) {
+          targetAction = { type: 'notch-move', col: snapCol, row: snapRow };
+          const gr = getBlockRect(candidate, stageW, stageH, stageScale);
+          showDropGhost(gr, block.radius !== null ? block.radius : state.radius);
+        } else {
+          targetAction = { type: 'swap', otherId: hoveredOther.id };
+          showDropGhost(hr, hoveredOther.radius !== null ? hoveredOther.radius : state.radius);
+        }
+      } else {
+        targetAction = null;
+        el.dropGhost.classList.remove('visible');
+      }
+    }
+
+    function onUp() {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      if (dragging) {
+        div.classList.remove('dragging');
+        el.artboard.classList.remove('show-guides');
+        el.dropGhost.classList.remove('visible');
+
+        if (targetAction) {
+          if (targetAction.type === 'swap') {
+            const other = state.blocks.find(b => b.id === targetAction.otherId);
+            if (other) {
+              pushHistory();
+              const tmp = { col: block.col, row: block.row, colSpan: block.colSpan, rowSpan: block.rowSpan };
+              block.col = other.col;
+              block.row = other.row;
+              block.colSpan = other.colSpan;
+              block.rowSpan = other.rowSpan;
+              other.col = tmp.col;
+              other.row = tmp.row;
+              other.colSpan = tmp.colSpan;
+              other.rowSpan = tmp.rowSpan;
+            }
+          } else if (targetAction.type === 'move' || targetAction.type === 'notch-move') {
+            if (block.col !== targetAction.col || block.row !== targetAction.row) {
+              pushHistory();
+              block.col = targetAction.col;
+              block.row = targetAction.row;
+              if (targetAction.type === 'notch-move') {
+                bringBlockToFront(block.id);
+              }
+            }
+          }
+        }
+        renderBlocks();
+      }
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  }
+
+  function showDropGhost(rect, radiusVal) {
+    el.dropGhost.style.left = rect.x + 'px';
+    el.dropGhost.style.top = rect.y + 'px';
+    el.dropGhost.style.width = rect.w + 'px';
+    el.dropGhost.style.height = rect.h + 'px';
+    el.dropGhost.style.borderRadius = (radiusVal * stageScale) + 'px';
+    el.dropGhost.classList.add('visible');
+  }
+
+  function startResize(e, block, dir) {
+    const div = blockNodes.get(block.id);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const orig = { col: block.col, row: block.row, colSpan: block.colSpan, rowSpan: block.rowSpan };
+    const origBlocksSnapshot = state.blocks.map(b => ({ ...b }));
+    const origIdx = origBlocksSnapshot.findIndex(b => b.id === block.id);
+
+    const keptAboveIds = new Set();
+    for (let i = origIdx + 1; i < origBlocksSnapshot.length; i++) {
+      if (rectsOverlap(orig, origBlocksSnapshot[i])) {
+        keptAboveIds.add(origBlocksSnapshot[i].id);
+      }
+    }
+
+    let changed = false;
+    div.classList.add('resizing');
+    el.artboard.classList.add('show-guides');
+
+    function onMove(ev) {
+      const { cellW, cellH, gap } = getGridMetrics(stageW, stageH, stageScale);
+      const stepX = cellW + gap;
+      const stepY = cellH + gap;
+      const dCol = Math.round((ev.clientX - startX) / stepX);
+      const dRow = Math.round((ev.clientY - startY) / stepY);
+
+      let nCol = orig.col;
+      let nRow = orig.row;
+      let nCS = orig.colSpan;
+      let nRS = orig.rowSpan;
+
+      if (dir.includes('e')) {
+        nCS = clamp(orig.colSpan + dCol, 1, GRID_COLS - orig.col);
+      }
+      if (dir.includes('w')) {
+        const clampedD = clamp(dCol, -orig.col, orig.colSpan - 1);
+        nCol = orig.col + clampedD;
+        nCS = orig.colSpan - clampedD;
+      }
+      if (dir.includes('s')) {
+        nRS = clamp(orig.rowSpan + dRow, 1, GRID_ROWS - orig.row);
+      }
+      if (dir.includes('n')) {
+        const clampedD = clamp(dRow, -orig.row, orig.rowSpan - 1);
+        nRow = orig.row + clampedD;
+        nRS = orig.rowSpan - clampedD;
+      }
+
+      const belowOrNew = [];
+      const stayAbove = [];
+      for (const b of origBlocksSnapshot) {
+        if (b.id === block.id) continue;
+        if (keptAboveIds.has(b.id)) stayAbove.push({ ...b });
+        else belowOrNew.push({ ...b });
+      }
+      const me = { ...origBlocksSnapshot[origIdx], col: nCol, row: nRow, colSpan: nCS, rowSpan: nRS };
+      const proposed = [...belowOrNew, me, ...stayAbove];
+
+      if (validateOverlapLayout(proposed)) {
+        if (block.col !== nCol || block.row !== nRow || block.colSpan !== nCS || block.rowSpan !== nRS) {
+          changed = true;
+        }
+        block.col = nCol;
+        block.row = nRow;
+        block.colSpan = nCS;
+        block.rowSpan = nRS;
+
+        const idOrder = proposed.map(p => p.id);
+        state.blocks.sort((a, b) => idOrder.indexOf(a.id) - idOrder.indexOf(b.id));
+        updateAllBlockPositions();
+      }
+    }
+
+    function onUp() {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      div.classList.remove('resizing');
+      el.artboard.classList.remove('show-guides');
+      if (changed) {
+        const currentSnap = snapshotState();
+        const restored = JSON.parse(currentSnap);
+        restored.blocks = origBlocksSnapshot;
+        history.past.push(JSON.stringify(restored));
+        if (history.past.length > MAX_HISTORY) history.past.shift();
+        history.future.length = 0;
+        updateHistoryButtons();
+      }
+      renderBlocks();
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  }
+
+  // --- Framing Mode ---
+  function enterFramingMode(blockId) {
+    const block = state.blocks.find(b => b.id === blockId);
+    if (!block || !block.media) return;
+    state.framingId = blockId;
+    state.selectedId = blockId;
+    el.artboard.classList.add('framing-active');
+    el.framingHud.classList.add('visible');
+    updateFramingHud(block);
+    renderBlocks();
+    syncInspectorUI();
+  }
+
+  function exitFramingMode() {
+    if (!state.framingId) return;
+    state.framingId = null;
+    el.artboard.classList.remove('framing-active');
+    el.framingHud.classList.remove('visible');
+    renderBlocks();
+  }
+
+  function updateFramingHud(block) {
+    if (!block || !block.media) return;
+    el.framingZoomVal.textContent = (block.media.scale ?? 1).toFixed(2) + '×';
+    el.framingPosVal.textContent = `${Math.round(block.media.posX ?? 50)}%, ${Math.round(block.media.posY ?? 50)}%`;
+    const fit = block.media.fitMode || 'cover';
+    el.framingFitToggle.querySelectorAll('.seg-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.fit === fit);
+    });
+  }
+
+  function startFramingPan(e, block) {
+    const div = blockNodes.get(block.id);
+    const rect = div.getBoundingClientRect();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startPX = block.media.posX ?? 50;
+    const startPY = block.media.posY ?? 50;
+    pushHistory();
+
+    function onMove(ev) {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      const mediaEl = div.querySelector('.block-media');
+      const mw = mediaEl ? (mediaEl.tagName === 'VIDEO' ? mediaEl.videoWidth : mediaEl.naturalWidth) : 1;
+      const mh = mediaEl ? (mediaEl.tagName === 'VIDEO' ? mediaEl.videoHeight : mediaEl.naturalHeight) : 1;
+      const box = computeMediaDrawBox(mw, mh, rect.width, rect.height, startPX, startPY, block.media.scale ?? 1, block.media.fitMode || 'cover');
+
+      const signX = box.dw >= rect.width ? -1 : 1;
+      const signY = box.dh >= rect.height ? -1 : 1;
+      const sensitivity = 100 / Math.max(80, Math.min(rect.width, rect.height));
+      block.media.posX = clamp(startPX + signX * dx * sensitivity, 0, 100);
+      block.media.posY = clamp(startPY + signY * dy * sensitivity, 0, 100);
+      syncBlockMediaDOM(div, block, getBlockRect(block, stageW, stageH, stageScale));
+      updateFramingHud(block);
+    }
+
+    function onUp() {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  }
+
+  function onBlockWheel(e, blockId) {
+    if (state.framingId !== blockId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const block = state.blocks.find(b => b.id === blockId);
+    if (!block || !block.media) return;
+    const delta = -e.deltaY * 0.0016;
+    block.media.scale = clamp((block.media.scale ?? 1) + delta, 0.15, 4);
+    const div = blockNodes.get(blockId);
+    syncBlockMediaDOM(div, block, getBlockRect(block, stageW, stageH, stageScale));
+    updateFramingHud(block);
+    syncInspectorUI();
+  }
+
+  // --- Media Loading ---
+  function attachMediaFileToBlock(blockId, file) {
+    const block = state.blocks.find(b => b.id === blockId);
+    if (!block) return;
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    if (!isVideo && !isImage) {
+      showToast('Unsupported file type');
+      return;
+    }
+
+    if (isVideo && file.size > 25 * 1024 * 1024) {
+      pushHistory();
+      block.media = {
+        type: 'video',
+        mime: file.type,
+        src: URL.createObjectURL(file),
+        srcKey: uid(),
+        posX: 50,
+        posY: 50,
+        scale: 1,
+        fitMode: 'cover'
+      };
+      state.selectedId = block.id;
+      renderBlocks();
+      syncInspectorUI();
+      showToast('Video added');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      pushHistory();
+      block.media = {
+        type: isVideo ? 'video' : 'image',
+        mime: file.type,
+        src: reader.result,
+        srcKey: uid(),
+        posX: 50,
+        posY: 50,
+        scale: 1,
+        fitMode: 'cover'
+      };
+      if (isGifMedia(block.media)) ensureGifDecoded(block.media);
+      state.selectedId = block.id;
+      renderBlocks();
+      syncInspectorUI();
+      showToast(isVideo ? 'Video added' : (isGifMedia(block.media) ? 'GIF added' : 'Image added'));
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function extractImageUrlFromText(text, html) {
+    const trimmed = (text || '').trim();
+    const isDirectUrl = /^https?:\/\/\S+$/i.test(trimmed);
+    if (isDirectUrl) {
+      if (/\.(gif|png|jpe?g|webp|svg|avif)(\?.*)?$/i.test(trimmed) ||
+          /(giphy\.com|tenor\.com|media\.tenor\.com|i\.imgur\.com)/i.test(trimmed)) {
+        return trimmed;
+      }
+    }
+    if (html) {
+      const m = html.match(/<img[^>]+src=["'](https?:\/\/[^"']+)["']/i);
+      if (m && m[1]) return m[1];
+    }
+    return null;
+  }
+
+  async function attachMediaUrlToBlock(blockId, url) {
+    const block = state.blocks.find(b => b.id === blockId);
+    if (!block) return;
+    const isGif = /\.gif(\?|$)/i.test(url) || /(giphy|tenor)/i.test(url);
+
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      if (res.ok) {
+        const blob = await res.blob();
+        if (blob.type.startsWith('image/')) {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const fr = new FileReader();
+            fr.onload = () => resolve(fr.result);
+            fr.onerror = reject;
+            fr.readAsDataURL(blob);
+          });
+          pushHistory();
+          block.media = {
+            type: 'image',
+            mime: blob.type || (isGif ? 'image/gif' : 'image/png'),
+            src: dataUrl,
+            isRemote: false,
+            srcKey: uid(),
+            posX: 50,
+            posY: 50,
+            scale: 1,
+            fitMode: 'cover'
+          };
+          if (isGifMedia(block.media)) ensureGifDecoded(block.media);
+          state.selectedId = block.id;
+          renderBlocks();
+          syncInspectorUI();
+          showToast(isGif ? 'GIF pasted (export-ready)' : 'Image pasted (export-ready)');
+          return;
+        }
+      }
+    } catch (_) {
+      // Fallback to direct URL
+    }
+
+    pushHistory();
+    block.media = {
+      type: 'image',
+      mime: isGif ? 'image/gif' : 'image/png',
+      src: url,
+      isRemote: true,
+      srcKey: uid(),
+      posX: 50,
+      posY: 50,
+      scale: 1,
+      fitMode: 'cover'
+    };
+    state.selectedId = block.id;
+    renderBlocks();
+    syncInspectorUI();
+    showToast(isGif ? 'GIF pasted from URL' : 'Image pasted from URL');
+  }
+
+  window.addEventListener('paste', e => {
+    const activeTag = document.activeElement && document.activeElement.tagName;
+    if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+
+    const targetId = state.hoveredId || state.selectedId || (state.blocks.find(b => !b.media) || state.blocks[0])?.id;
+    if (!targetId) return;
+
+    const items = e.clipboardData && e.clipboardData.items;
+    if (items) {
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            attachMediaFileToBlock(targetId, file);
+            return;
+          }
+        }
+      }
+    }
+
+    const plain = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+    const html = e.clipboardData ? e.clipboardData.getData('text/html') : '';
+    const url = extractImageUrlFromText(plain, html);
+    if (url) {
+      e.preventDefault();
+      attachMediaUrlToBlock(targetId, url);
+    }
+  });
+
+  // --- Inspector UI Sync ---
+  function renderPalettes() {
+    el.paletteGrid.innerHTML = '';
+    for (const p of PALETTES) {
+      const btn = document.createElement('button');
+      btn.className = 'palette-btn' + (state.activePalette === p.id ? ' active' : '');
+      btn.title = p.name;
+      btn.innerHTML = `
+        <div class="palette-chips">
+          <div class="palette-chip" style="background:${p.canvas}"></div>
+          <div class="palette-chip" style="background:${p.tones[0]}"></div>
+          <div class="palette-chip" style="background:${p.tones[1]}"></div>
+          <div class="palette-chip" style="background:${p.tones[2]}"></div>
+        </div>
+        <span class="palette-name">${p.name}</span>
+      `;
+      btn.addEventListener('click', () => applyPalette(p));
+      el.paletteGrid.appendChild(btn);
+    }
+  }
+
+  function applyPalette(palette) {
+    pushHistory();
+    state.activePalette = palette.id;
+    state.canvasBg = palette.canvas;
+    state.defaultBlockBg = palette.defaultBlock;
+    state.blocks.forEach((b, i) => {
+      b.color = palette.tones[i % palette.tones.length];
+    });
+    syncInspectorUI();
+    layoutStage(true);
+    renderBlocks();
+  }
+
+  function getTotalExportSeconds() {
+    if (state.exportMode === 'static') return state.exportDuration;
+    return Number((state.exportDuration + state.exportHold).toFixed(1));
+  }
+
+  function syncInspectorUI() {
+    el.inputWidth.value = state.width;
+    el.inputHeight.value = state.height;
+    el.ratioBadge.textContent = `${state.ratioLabel} ratio`;
+    el.ratioPresets.querySelectorAll('.pill-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.label === state.ratioLabel);
+    });
+
+    el.sliderGap.value = state.gap;
+    el.valGap.textContent = `${state.gap}px`;
+    el.sliderPadding.value = state.padding;
+    el.valPadding.textContent = `${state.padding}px`;
+    el.sliderRadius.value = state.radius;
+    el.valRadius.textContent = `${state.radius}px`;
+
+    el.pickerCanvasBg.value = state.canvasBg;
+    el.hexCanvasBg.value = state.canvasBg;
+    el.swatchCanvasBg.style.backgroundColor = state.canvasBg;
+
+    el.pickerBlockBg.value = state.defaultBlockBg;
+    el.hexBlockBg.value = state.defaultBlockBg;
+    el.swatchBlockBg.style.backgroundColor = state.defaultBlockBg;
+
+    renderPalettes();
+
+    const sel = state.blocks.find(b => b.id === state.selectedId);
+    if (!sel) {
+      el.blockEmptyMsg.classList.remove('hidden');
+      el.blockControls.classList.add('hidden');
+      el.blockHeaderActions.classList.add('hidden');
+    } else {
+      el.blockEmptyMsg.classList.add('hidden');
+      el.blockControls.classList.remove('hidden');
+      el.blockHeaderActions.classList.remove('hidden');
+
+      const effectiveColor = sel.color || state.defaultBlockBg;
+      el.pickerSelBlock.value = effectiveColor;
+      el.hexSelBlock.value = effectiveColor;
+      el.swatchSelBlock.style.backgroundColor = effectiveColor;
+
+      const hasRadiusOverride = sel.radius !== null && sel.radius !== undefined;
+      el.sliderSelRadius.value = hasRadiusOverride ? sel.radius : state.radius;
+      el.valSelRadius.textContent = hasRadiusOverride ? `${sel.radius}px` : 'Auto';
+      el.btnResetSelRadius.classList.toggle('hidden', !hasRadiusOverride);
+
+      el.btnFrameMedia.disabled = !sel.media;
+      el.btnClearMedia.disabled = !sel.media;
+
+      if (sel.media) {
+        el.mediaFitControls.classList.remove('hidden');
+        const fit = sel.media.fitMode || 'cover';
+        el.inspectorFitToggle.querySelectorAll('.seg-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.fit === fit);
+        });
+        const sc = sel.media.scale ?? 1;
+        el.sliderMediaZoom.value = sc;
+        el.valMediaZoom.textContent = `${sc.toFixed(2)}×`;
+      } else {
+        el.mediaFitControls.classList.add('hidden');
+      }
+
+      if (sel.text) {
+        el.textPanel.classList.remove('hidden');
+        const slotIdx = clamp(state.activeTextSlot, 0, 2);
+        const slot = sel.text.slots[slotIdx];
+        el.textSlotTabs.querySelectorAll('.seg-btn').forEach(btn => {
+          btn.classList.toggle('active', Number(btn.dataset.slot) === slotIdx);
+        });
+        if (document.activeElement !== el.inputSlotText) {
+          el.inputSlotText.value = slot.text || '';
+        }
+
+        const curFont = slot.font || 'Inter';
+        el.fontPickerLabel.textContent = curFont;
+        el.fontPickerLabel.style.fontFamily = getFontCssStack(curFont);
+        el.fontPickerOptions.querySelectorAll('.font-option').forEach(opt => {
+          opt.classList.toggle('active', opt.dataset.font === curFont);
+        });
+
+        el.inputSlotSize.value = slot.size || 32;
+        el.selectSlotWeight.value = slot.weight || '500';
+        el.btnSlotItalic.classList.toggle('active', !!slot.italic);
+        el.btnSlotUpper.classList.toggle('active', !!slot.uppercase);
+
+        const sCol = slot.color || '#EDEDED';
+        el.pickerSlotColor.value = sCol;
+        el.hexSlotColor.value = sCol;
+        el.swatchSlotColor.style.backgroundColor = sCol;
+
+        el.textAlignH.querySelectorAll('.seg-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.align === (sel.text.align || 'left'));
+        });
+        el.textAlignV.querySelectorAll('.seg-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.valign === (sel.text.valign || 'bottom'));
+        });
+        el.sliderTextPad.value = sel.text.padding ?? 28;
+        el.valTextPad.textContent = `${sel.text.padding ?? 28}px`;
+      } else {
+        el.textPanel.classList.add('hidden');
+        el.fontPickerMenu.classList.add('hidden');
+      }
+    }
+
+    el.selectExportMode.value = state.exportMode;
+    el.lblAnimDur.textContent = state.exportMode === 'static' ? 'Clip' : 'Anim';
+    el.holdDurationRow.classList.toggle('hidden', state.exportMode === 'static');
+
+    el.exportDurationToggle.querySelectorAll('.seg-btn').forEach(btn => {
+      btn.classList.toggle('active', Number(btn.dataset.dur) === state.exportDuration);
+    });
+    if (document.activeElement !== el.inputCustomDuration) {
+      el.inputCustomDuration.value = state.exportDuration;
+    }
+
+    el.exportHoldToggle.querySelectorAll('.seg-btn').forEach(btn => {
+      btn.classList.toggle('active', Number(btn.dataset.hold) === state.exportHold);
+    });
+    if (document.activeElement !== el.inputCustomHold) {
+      el.inputCustomHold.value = state.exportHold;
+    }
+
+    el.valTotalDuration.textContent = `Total ${getTotalExportSeconds()}s`;
+  }
+
+  // --- New / Save / Open JSON ---
+  function newProject() {
+    stopPreview();
+    exitFramingMode();
+    pushHistory();
+    state.width = 1920;
+    state.height = 1080;
+    state.ratioLabel = '16:9';
+    state.gap = 16;
+    state.padding = 24;
+    state.radius = 20;
+    state.canvasBg = '#0E0E0E';
+    state.defaultBlockBg = '#1A1A1A';
+    state.activePalette = 'obsidian';
+    state.exportMode = 'static';
+    state.exportDuration = 5;
+    state.exportHold = 2;
+    state.selectedId = null;
+    state.hoveredId = null;
+    state.framingId = null;
+    state.activeTextSlot = 1;
+    state.blocks = DEFAULT_BLOCKS();
+    syncInspectorUI();
+    layoutStage(true);
+    renderBlocks();
+    showToast('New project created (Ctrl+Z to undo)');
+  }
+
+  function saveProjectJson() {
+    const payload = {
+      version: 2,
+      width: state.width,
+      height: state.height,
+      ratioLabel: state.ratioLabel,
+      gap: state.gap,
+      padding: state.padding,
+      radius: state.radius,
+      canvasBg: state.canvasBg,
+      defaultBlockBg: state.defaultBlockBg,
+      activePalette: state.activePalette,
+      exportMode: state.exportMode,
+      exportDuration: state.exportDuration,
+      exportHold: state.exportHold,
+      blocks: state.blocks
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    triggerDownload(blob, 'bento-project.json');
+    showToast('Project saved');
+  }
+
+  function openProjectJson(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!Array.isArray(data.blocks) || !data.blocks.length) {
+          throw new Error('Invalid project');
+        }
+        pushHistory();
+        state.width = clamp(Number(data.width) || 1920, 200, 4096);
+        state.height = clamp(Number(data.height) || 1080, 200, 4096);
+        state.ratioLabel = data.ratioLabel || computeRatioLabel(state.width, state.height);
+        state.gap = clamp(Number(data.gap) ?? 16, 0, 48);
+        state.padding = clamp(Number(data.padding) ?? 24, 0, 64);
+        state.radius = clamp(Number(data.radius) ?? 20, 0, 64);
+        state.canvasBg = normalizeHex(data.canvasBg) || '#0E0E0E';
+        state.defaultBlockBg = normalizeHex(data.defaultBlockBg) || '#1A1A1A';
+        state.activePalette = data.activePalette || null;
+        state.exportMode = ['static', 'scroll', 'pop', 'wave', 'split'].includes(data.exportMode) ? data.exportMode : 'static';
+        state.exportDuration = clamp(Number(data.exportDuration) || 5, 0.5, 60);
+        state.exportHold = clamp(Number(data.exportHold) ?? 2, 0, 60);
+        state.blocks = data.blocks.map(b => {
+          const media = b.media && b.media.src ? { ...b.media, srcKey: uid(), fitMode: b.media.fitMode || 'cover' } : null;
+          if (media && isGifMedia(media)) ensureGifDecoded(media);
+          return {
+            id: b.id || uid(),
+            col: clamp(Number(b.col) || 0, 0, GRID_COLS - 1),
+            row: clamp(Number(b.row) || 0, 0, GRID_ROWS - 1),
+            colSpan: clamp(Number(b.colSpan) || 2, 1, GRID_COLS),
+            rowSpan: clamp(Number(b.rowSpan) || 2, 1, GRID_ROWS),
+            color: normalizeHex(b.color),
+            radius: b.radius !== null && b.radius !== undefined ? clamp(Number(b.radius), 0, 64) : null,
+            media,
+            text: b.text || null
+          };
+        });
+        state.selectedId = null;
+        exitFramingMode();
+        syncInspectorUI();
+        layoutStage(true);
+        renderBlocks();
+        showToast('Project loaded');
+      } catch (err) {
+        showToast('Invalid project file');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  // --- Multi-Style Motion Engine ---
+  function getAnimationStates(mode, t, outW, outH) {
+    const map = new Map();
+    const blocks = state.blocks;
+    const n = blocks.length;
+
+    if (mode === 'static') {
+      for (const b of blocks) map.set(b.id, { opacity: 1, tx: 0, ty: 0, scale: 1 });
+      return map;
+    }
+
+    if (mode === 'scroll') {
+      const sorted = [...blocks].sort((a, b) => (a.row - b.row) || (a.col - b.col));
+      const travel = outH * 0.085;
+      const scrollOffset = (1 - easeInOutSine(Math.min(1, t / 0.82))) * travel;
+      const staggerWindow = 0.52;
+      const itemDur = 0.34;
+      sorted.forEach((b, i) => {
+        const delay = n > 1 ? (i / (n - 1)) * staggerWindow : 0;
+        const localT = clamp((t - delay) / itemDur, 0, 1);
+        const eased = easeLiquid(localT);
+        map.set(b.id, {
+          opacity: eased,
+          tx: 0,
+          ty: scrollOffset + (1 - eased) * (outH * 0.075),
+          scale: 0.965 + 0.035 * eased
+        });
+      });
+      return map;
+    }
+
+    if (mode === 'pop') {
+      const sorted = [...blocks].sort((a, b) => {
+        const da = Math.hypot((a.col + a.colSpan / 2) - 6, (a.row + a.rowSpan / 2) - 6);
+        const db = Math.hypot((b.col + b.colSpan / 2) - 6, (b.row + b.rowSpan / 2) - 6);
+        return da - db;
+      });
+      const staggerWindow = 0.48;
+      const itemDur = 0.36;
+      sorted.forEach((b, i) => {
+        const delay = n > 1 ? (i / (n - 1)) * staggerWindow : 0;
+        const localT = clamp((t - delay) / itemDur, 0, 1);
+        const scEased = easeOutBack(localT);
+        const opEased = easeLiquid(Math.min(1, localT * 1.4));
+        map.set(b.id, {
+          opacity: opEased,
+          tx: 0,
+          ty: 0,
+          scale: 0.82 + 0.18 * scEased
+        });
+      });
+      return map;
+    }
+
+    if (mode === 'wave') {
+      const sorted = [...blocks].sort((a, b) => (a.col + a.row) - (b.col + b.row));
+      const staggerWindow = 0.54;
+      const itemDur = 0.34;
+      sorted.forEach((b, i) => {
+        const delay = n > 1 ? (i / (n - 1)) * staggerWindow : 0;
+        const localT = clamp((t - delay) / itemDur, 0, 1);
+        const eased = easeLiquid(localT);
+        map.set(b.id, {
+          opacity: eased,
+          tx: (1 - eased) * (-outW * 0.045),
+          ty: (1 - eased) * (outH * 0.055),
+          scale: 0.94 + 0.06 * eased
+        });
+      });
+      return map;
+    }
+
+    if (mode === 'split') {
+      const sorted = [...blocks].sort((a, b) => (a.row - b.row) || (a.col - b.col));
+      const staggerWindow = 0.46;
+      const itemDur = 0.38;
+      sorted.forEach((b, i) => {
+        const delay = n > 1 ? (i / (n - 1)) * staggerWindow : 0;
+        const localT = clamp((t - delay) / itemDur, 0, 1);
+        const eased = easeLiquid(localT);
+        const cx = b.col + b.colSpan / 2;
+        let dx = 0;
+        let dy = 0;
+        if (cx < 5.2) dx = -outW * 0.085;
+        else if (cx > 6.8) dx = outW * 0.085;
+        else dy = outH * 0.075;
+        map.set(b.id, {
+          opacity: eased,
+          tx: (1 - eased) * dx,
+          ty: (1 - eased) * dy,
+          scale: 0.97 + 0.03 * eased
+        });
+      });
+      return map;
+    }
+
+    for (const b of blocks) map.set(b.id, { opacity: 1, tx: 0, ty: 0, scale: 1 });
+    return map;
+  }
+
+  // --- Offscreen Canvas Rendering (Live Video + Frame-Accurate Decoded GIFs + Multi-Style Text + Liquid Cutouts) ---
+  function wrapCanvasLines(ctx, text, maxW) {
+    const paragraphs = text.split('\n');
+    const lines = [];
+    for (const para of paragraphs) {
+      const words = para.split(/\s+/);
+      let line = '';
+      for (const word of words) {
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width > maxW && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = test;
+        }
+      }
+      lines.push(line);
+    }
+    return lines;
+  }
+
+  function drawBlockTextCanvas(ctx, block, rect, scale) {
+    if (!block.text || !Array.isArray(block.text.slots)) return;
+    const t = block.text;
+    const pad = (t.padding ?? 28) * scale;
+    const maxW = Math.max(10, rect.w - pad * 2);
+    const gap = Math.max(2, 8 * scale);
+
+    const renderedSlots = [];
+    let totalH = 0;
+    for (const slot of t.slots) {
+      if (!slot.text || !slot.text.trim()) continue;
+      const fontSize = Math.max(6, (slot.size || 32) * scale);
+      const lineHeight = fontSize * (slot.size >= 40 ? 1.08 : 1.32);
+      const fontStr = `${slot.italic ? 'italic ' : ''}${slot.weight || '500'} ${fontSize}px ${getFontCssStack(slot.font || 'Inter')}`;
+      ctx.font = fontStr;
+      const content = slot.uppercase ? slot.text.toUpperCase() : slot.text;
+      const lines = wrapCanvasLines(ctx, content, maxW);
+      const blockH = lines.length * lineHeight;
+      renderedSlots.push({ slot, fontStr, fontSize, lineHeight, lines, blockH });
+      totalH += blockH;
+    }
+    if (!renderedSlots.length) return;
+    totalH += gap * (renderedSlots.length - 1);
+
+    let curY = pad;
+    if (t.valign === 'center') curY = (rect.h - totalH) / 2;
+    else if (t.valign === 'bottom') curY = rect.h - pad - totalH;
+
+    const align = t.align || 'left';
+    const anchorX = align === 'center' ? rect.w / 2 : (align === 'right' ? rect.w - pad : pad);
+
+    ctx.save();
+    ctx.textAlign = align;
+    ctx.textBaseline = 'top';
+    for (const rs of renderedSlots) {
+      ctx.font = rs.fontStr;
+      ctx.fillStyle = rs.slot.color || '#EDEDED';
+      for (const line of rs.lines) {
+        ctx.fillText(line, anchorX, curY);
+        curY += rs.lineHeight;
+      }
+      curY += gap;
+    }
+    ctx.restore();
+  }
+
+  function renderFrameToCanvas(ctx, outW, outH, animMode = 'static', t = 1, safeMediaSet = null, elapsedMs = 0) {
+    const scale = outW / state.width;
+    const { visMap } = computeVisibilityMap();
+    let skippedCorsCount = 0;
+
+    ctx.save();
+    ctx.fillStyle = state.canvasBg;
+    ctx.fillRect(0, 0, outW, outH);
+
+    const animMap = getAnimationStates(animMode, t, outW, outH);
+
+    for (const block of state.blocks) {
+      const rect = getBlockRect(block, outW, outH, scale);
+      const rad = (block.radius !== null && block.radius !== undefined ? block.radius : state.radius) * scale;
+      const anim = animMap.get(block.id);
+      const visInfo = visMap.get(block.id);
+
+      if (anim && anim.opacity <= 0.002) continue;
+
+      ctx.save();
+      if (anim && animMode !== 'static') {
+        ctx.globalAlpha = anim.opacity;
+        const cx = rect.x + rect.w / 2 + anim.tx;
+        const cy = rect.y + rect.h / 2 + anim.ty;
+        ctx.translate(cx, cy);
+        ctx.scale(anim.scale, anim.scale);
+        ctx.translate(-rect.w / 2, -rect.h / 2);
+      } else {
+        ctx.translate(rect.x, rect.y);
+      }
+
+      const pts = traceBlockLocalPolygon(block, visInfo, outW, outH, scale);
+      traceRoundedPolygonCanvas(ctx, pts, rad);
+      ctx.save();
+      ctx.clip();
+
+      ctx.fillStyle = block.color || state.defaultBlockBg;
+      ctx.fillRect(0, 0, rect.w, rect.h);
+
+      if (block.media) {
+        const gifBitmap = getGifBitmapAtTime(block.media.srcKey, elapsedMs);
+        if (gifBitmap) {
+          const box = computeMediaDrawBox(
+            gifBitmap.width,
+            gifBitmap.height,
+            rect.w,
+            rect.h,
+            block.media.posX ?? 50,
+            block.media.posY ?? 50,
+            block.media.scale ?? 1,
+            block.media.fitMode || 'cover'
+          );
+          ctx.drawImage(gifBitmap, box.dx, box.dy, box.dw, box.dh);
+        } else {
+          const node = blockNodes.get(block.id);
+          const mediaEl = node ? node.querySelector('.block-media') : null;
+          if (mediaEl) {
+            const isSafe = safeMediaSet ? safeMediaSet.has(block.id) : isMediaCanvasSafe(mediaEl, block.media);
+            if (isSafe) {
+              const isVid = mediaEl.tagName === 'VIDEO';
+              if (isVid && mediaEl.paused && mediaEl.readyState >= 2) {
+                mediaEl.play().catch(() => {});
+              }
+              const mw = isVid ? mediaEl.videoWidth : mediaEl.naturalWidth;
+              const mh = isVid ? mediaEl.videoHeight : mediaEl.naturalHeight;
+              if (mw && mh && (!isVid || mediaEl.readyState >= 2)) {
+                const box = computeMediaDrawBox(
+                  mw,
+                  mh,
+                  rect.w,
+                  rect.h,
+                  block.media.posX ?? 50,
+                  block.media.posY ?? 50,
+                  block.media.scale ?? 1,
+                  block.media.fitMode || 'cover'
+                );
+                try {
+                  ctx.drawImage(mediaEl, box.dx, box.dy, box.dw, box.dh);
+                } catch (_) {}
+              }
+            } else {
+              skippedCorsCount++;
+            }
+          }
+        }
+      }
+
+      drawBlockTextCanvas(ctx, block, rect, scale);
+
+      ctx.restore();
+      ctx.restore();
+    }
+
+    ctx.restore();
+    return skippedCorsCount;
+  }
+
+  function buildSafeMediaSet() {
+    const safeSet = new Set();
+    let blockedCount = 0;
+    for (const block of state.blocks) {
+      if (!block.media) continue;
+      if (gifFramesCache.has(block.media.srcKey)) {
+        safeSet.add(block.id);
+        continue;
+      }
+      const node = blockNodes.get(block.id);
+      const mediaEl = node ? node.querySelector('.block-media') : null;
+      if (mediaEl && isMediaCanvasSafe(mediaEl, block.media)) {
+        safeSet.add(block.id);
+      } else if (mediaEl) {
+        blockedCount++;
+      }
+    }
+    return { safeSet, blockedCount };
+  }
+
+  // --- PNG Export (2x) ---
+  function exportPng() {
+    const maxDim = 3840;
+    let outW = state.width * 2;
+    let outH = state.height * 2;
+    const longest = Math.max(outW, outH);
+    if (longest > maxDim) {
+      const k = maxDim / longest;
+      outW = Math.round(outW * k);
+      outH = Math.round(outH * k);
+    }
+
+    const { safeSet, blockedCount } = buildSafeMediaSet();
+    const canvas = document.createElement('canvas');
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    renderFrameToCanvas(ctx, outW, outH, 'static', 1, safeSet, 0);
+
+    canvas.toBlob(blob => {
+      if (!blob) {
+        showToast('PNG export failed');
+        return;
+      }
+      triggerDownload(blob, `bento-${state.ratioLabel.replace(':', 'x')}.png`);
+      if (blockedCount > 0) {
+        showToast(`Exported PNG (${blockedCount} external URL blocked by host CORS — drop file locally to include)`, 3800);
+      } else {
+        showToast(`Exported ${outW}×${outH} PNG`);
+      }
+    }, 'image/png');
+  }
+
+  // --- Live Motion Preview (Anim Duration + Extra Hold Duration) ---
+  function stopPreview() {
+    if (previewRaf) {
+      cancelAnimationFrame(previewRaf);
+      previewRaf = null;
+    }
+    el.artboard.classList.remove('previewing');
+    el.previewBtnText.textContent = 'Preview';
+    for (const div of blockNodes.values()) {
+      div.classList.remove('preview-anim');
+      div.style.opacity = '';
+      div.style.transform = '';
+    }
+  }
+
+  function togglePreview() {
+    if (previewRaf) {
+      stopPreview();
+      return;
+    }
+    exitFramingMode();
+    el.artboard.classList.add('previewing');
+    el.previewBtnText.textContent = 'Stop';
+
+    const mode = state.exportMode === 'static' ? 'scroll' : state.exportMode;
+    const animMs = Math.max(200, state.exportDuration * 1000);
+    const holdMs = state.exportHold * 1000;
+    const totalMs = animMs + holdMs;
+    const start = performance.now();
+
+    for (const div of blockNodes.values()) {
+      div.classList.add('preview-anim');
+    }
+
+    function step(now) {
+      const elapsed = now - start;
+      const t = clamp(elapsed / animMs, 0, 1);
+      const animMap = getAnimationStates(mode, t, stageW, stageH);
+
+      for (const block of state.blocks) {
+        const div = blockNodes.get(block.id);
+        const a = animMap.get(block.id);
+        if (!div || !a) continue;
+        div.style.opacity = a.opacity.toFixed(3);
+        div.style.transform = `translate3d(${a.tx.toFixed(2)}px, ${a.ty.toFixed(2)}px, 0) scale(${a.scale.toFixed(4)})`;
+      }
+
+      if (elapsed < totalMs) {
+        previewRaf = requestAnimationFrame(step);
+      } else {
+        stopPreview();
+      }
+    }
+
+    previewRaf = requestAnimationFrame(step);
+  }
+
+  // --- Multi-Mode MP4 Export (Live Video + Decoded Animated GIFs + Anim + Hold Duration) ---
+  function pickRecorderMime() {
+    if (typeof MediaRecorder === 'undefined') return null;
+    const candidates = [
+      { mime: 'video/mp4;codecs=avc1.420028', ext: 'mp4' },
+      { mime: 'video/mp4;codecs=avc1.640028', ext: 'mp4' },
+      { mime: 'video/mp4', ext: 'mp4' },
+      { mime: 'video/webm;codecs=vp9', ext: 'webm' },
+      { mime: 'video/webm;codecs=vp8', ext: 'webm' },
+      { mime: 'video/webm', ext: 'webm' }
+    ];
+    for (const c of candidates) {
+      if (MediaRecorder.isTypeSupported(c.mime)) return c;
+    }
+    return { mime: '', ext: 'webm' };
+  }
+
+  async function prepareAllMediaForVideoExport() {
+    const tasks = [];
+    for (const block of state.blocks) {
+      if (!block.media) continue;
+      if (isGifMedia(block.media) && !gifFramesCache.has(block.media.srcKey)) {
+        tasks.push(ensureGifDecoded(block.media));
+      }
+      if (block.media.type === 'video') {
+        const node = blockNodes.get(block.id);
+        const v = node ? node.querySelector('video.block-media') : null;
+        if (v) {
+          v.muted = true;
+          v.loop = true;
+          tasks.push(new Promise(resolve => {
+            let done = false;
+            const finish = () => {
+              if (done) return;
+              done = true;
+              v.play().catch(() => {}).finally(resolve);
+            };
+            const timer = setTimeout(finish, 600);
+            try {
+              v.addEventListener('seeked', () => { clearTimeout(timer); finish(); }, { once: true });
+              v.currentTime = 0;
+            } catch (_) {
+              clearTimeout(timer);
+              finish();
+            }
+          }));
+        }
+      }
+    }
+    if (tasks.length) await Promise.all(tasks);
+  }
+
+  async function exportMp4() {
+    if (isExporting) return;
+    stopPreview();
+    exitFramingMode();
+
+    const codec = pickRecorderMime();
+    if (!codec) {
+      showToast('Video recording not supported in this browser');
+      return;
+    }
+
+    isExporting = true;
+    el.btnExportMp4.disabled = true;
+    el.btnExportPng.disabled = true;
+    el.btnPreviewAnim.disabled = true;
+    el.mp4BtnText.textContent = 'Prep...';
+    el.mp4ProgressFill.style.width = '0%';
+
+    // Decode animated GIF frames & cue all <video> elements cleanly before recording starts
+    await prepareAllMediaForVideoExport();
+
+    const maxDim = 1280;
+    let outW = state.width;
+    let outH = state.height;
+    const longest = Math.max(outW, outH);
+    if (longest > maxDim) {
+      const k = maxDim / longest;
+      outW = outW * k;
+      outH = outH * k;
+    }
+    outW = Math.max(2, Math.round(outW / 2) * 2);
+    outH = Math.max(2, Math.round(outH / 2) * 2);
+
+    const { safeSet, blockedCount } = buildSafeMediaSet();
+
+    const mountWrap = document.createElement('div');
+    mountWrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:2px;height:2px;overflow:hidden;opacity:0.01;pointer-events:none;';
+    const canvas = document.createElement('canvas');
+    canvas.width = outW;
+    canvas.height = outH;
+    mountWrap.appendChild(canvas);
+    document.body.appendChild(mountWrap);
+
+    const ctx = canvas.getContext('2d', { alpha: false });
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const mode = state.exportMode;
+    const animMs = Math.max(200, state.exportDuration * 1000);
+    const holdMs = mode === 'static' ? 0 : Math.max(0, state.exportHold * 1000);
+    const totalMs = animMs + holdMs;
+
+    // Pre-paint Frame 0 before starting MediaRecorder
+    renderFrameToCanvas(ctx, outW, outH, mode, mode === 'static' ? 1 : 0.001, safeSet, 0);
+
+    const stream = canvas.captureStream(30);
+    const videoTrack = stream.getVideoTracks()[0];
+    const options = { videoBitsPerSecond: 6_000_000 };
+    if (codec.mime) options.mimeType = codec.mime;
+
+    let recorder;
+    try {
+      recorder = new MediaRecorder(stream, options);
+    } catch (err) {
+      recorder = new MediaRecorder(stream);
+    }
+
+    const chunks = [];
+    recorder.ondataavailable = e => {
+      if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
+
+    let startTime = null;
+
+    recorder.onstop = () => {
+      isExporting = false;
+      mountWrap.remove();
+      el.btnExportMp4.disabled = false;
+      el.btnExportPng.disabled = false;
+      el.btnPreviewAnim.disabled = false;
+      el.mp4BtnText.textContent = 'Export MP4';
+      el.mp4ProgressFill.style.width = '0%';
+
+      const blob = new Blob(chunks, { type: codec.mime || 'video/webm' });
+      triggerDownload(blob, `bento-${mode}-${state.ratioLabel.replace(':', 'x')}.${codec.ext}`);
+      const extLabel = codec.ext === 'mp4' ? 'MP4' : 'WebM';
+      if (blockedCount > 0) {
+        showToast(`Exported ${extLabel} (${blockedCount} external URL blocked by CORS)`, 3600);
+      } else {
+        showToast(`Exported ${outW}×${outH} ${extLabel} (${getTotalExportSeconds()}s)`);
+      }
+    };
+
+    recorder.start();
+
+    function drawLoop(now) {
+      if (startTime === null) startTime = now;
+      const elapsed = now - startTime;
+      const animT = mode === 'static' ? 1 : clamp(elapsed / animMs, 0, 1);
+
+      renderFrameToCanvas(ctx, outW, outH, mode, animT, safeSet, elapsed);
+      if (videoTrack && typeof videoTrack.requestFrame === 'function') {
+        try { videoTrack.requestFrame(); } catch (_) {}
+      }
+
+      const pct = Math.min(100, Math.round((elapsed / totalMs) * 100));
+      el.mp4BtnText.textContent = `${pct}%`;
+      el.mp4ProgressFill.style.width = `${pct}%`;
+
+      if (elapsed < totalMs) {
+        requestAnimationFrame(drawLoop);
+      } else {
+        renderFrameToCanvas(ctx, outW, outH, mode, 1, safeSet, totalMs);
+        if (videoTrack && typeof videoTrack.requestFrame === 'function') {
+          try { videoTrack.requestFrame(); } catch (_) {}
+        }
+        setTimeout(() => {
+          if (recorder.state !== 'inactive') recorder.stop();
+        }, 160);
+      }
+    }
+
+    requestAnimationFrame(drawLoop);
+  }
+
+  // --- Wire Up Events ---
+  el.btnNew.addEventListener('click', newProject);
+  el.btnSave.addEventListener('click', saveProjectJson);
+  if (el.btnToggleCanvasExpand) {
+    el.btnToggleCanvasExpand.addEventListener('click', () => {
+      const expanded = el.mainBody.classList.toggle('canvas-expanded');
+      el.btnToggleCanvasExpand.textContent = expanded ? 'Show Inspector' : 'Expand Canvas';
+      requestAnimationFrame(() => layoutStage(true));
+    });
+  }
+  el.btnOpen.addEventListener('click', () => {
+    el.fileOpenJson.value = '';
+    el.fileOpenJson.click();
+  });
+  el.fileOpenJson.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (f) openProjectJson(f);
+  });
+
+  el.fileUploadMedia.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (f && uploadTargetId) attachMediaFileToBlock(uploadTargetId, f);
+    uploadTargetId = null;
+  });
+
+  el.btnUndo.addEventListener('click', undo);
+  el.btnRedo.addEventListener('click', redo);
+  el.btnAddBlock.addEventListener('click', addBlock);
+  el.btnResetLayout.addEventListener('click', () => {
+    pushHistory();
+    state.blocks = DEFAULT_BLOCKS();
+    if (Math.abs(Math.log((state.width / state.height) / (16 / 9))) > 0.22) {
+      reflowBlocksForAspect(state.width, state.height);
+    }
+    state.selectedId = null;
+    exitFramingMode();
+    renderBlocks();
+    syncInspectorUI();
+    showToast('Layout reset');
+  });
+
+  el.ratioPresets.addEventListener('click', e => {
+    const btn = e.target.closest('.pill-btn');
+    if (!btn) return;
+    const newW = Number(btn.dataset.w);
+    const newH = Number(btn.dataset.h);
+    const newLabel = btn.dataset.label;
+    if (newW === state.width && newH === state.height) return;
+    applyAspectChange(newW, newH, newLabel);
+  });
+
+  function applyCustomDimensions() {
+    const w = clamp(Number(el.inputWidth.value) || state.width, 200, 4096);
+    const h = clamp(Number(el.inputHeight.value) || state.height, 200, 4096);
+    if (w === state.width && h === state.height) return;
+    applyAspectChange(w, h, computeRatioLabel(w, h));
+  }
+  el.inputWidth.addEventListener('change', applyCustomDimensions);
+  el.inputHeight.addEventListener('change', applyCustomDimensions);
+
+  // Geometry Sliders
+  el.sliderGap.addEventListener('pointerdown', pushHistory);
+  el.sliderGap.addEventListener('input', () => {
+    state.gap = Number(el.sliderGap.value);
+    el.valGap.textContent = `${state.gap}px`;
+    renderGridGuides();
+    updateAllBlockPositions();
+  });
+
+  el.sliderPadding.addEventListener('pointerdown', pushHistory);
+  el.sliderPadding.addEventListener('input', () => {
+    state.padding = Number(el.sliderPadding.value);
+    el.valPadding.textContent = `${state.padding}px`;
+    renderGridGuides();
+    updateAllBlockPositions();
+  });
+
+  el.sliderRadius.addEventListener('pointerdown', pushHistory);
+  el.sliderRadius.addEventListener('input', () => {
+    state.radius = Number(el.sliderRadius.value);
+    el.valRadius.textContent = `${state.radius}px`;
+    updateAllBlockPositions();
+    syncInspectorUI();
+  });
+
+  // Theme Color Controls
+  function bindColorPair(picker, hexInput, swatch, getter, setter) {
+    picker.addEventListener('pointerdown', pushHistory);
+    picker.addEventListener('input', () => {
+      const hex = picker.value.toUpperCase();
+      setter(hex);
+      hexInput.value = hex;
+      swatch.style.backgroundColor = hex;
+    });
+    hexInput.addEventListener('change', () => {
+      const hex = normalizeHex(hexInput.value);
+      if (hex) {
+        pushHistory();
+        setter(hex);
+        picker.value = hex;
+        hexInput.value = hex;
+        swatch.style.backgroundColor = hex;
+      } else {
+        hexInput.value = getter();
+      }
+    });
+  }
+
+  bindColorPair(el.pickerCanvasBg, el.hexCanvasBg, el.swatchCanvasBg, () => state.canvasBg, hex => {
+    state.canvasBg = hex;
+    state.activePalette = null;
+    el.artboard.style.backgroundColor = hex;
+    renderPalettes();
+  });
+
+  bindColorPair(el.pickerBlockBg, el.hexBlockBg, el.swatchBlockBg, () => state.defaultBlockBg, hex => {
+    state.defaultBlockBg = hex;
+    state.activePalette = null;
+    state.blocks.forEach(b => { b.color = null; });
+    updateAllBlockPositions();
+    renderPalettes();
+    syncInspectorUI();
+  });
+
+  bindColorPair(
+    el.pickerSelBlock,
+    el.hexSelBlock,
+    el.swatchSelBlock,
+    () => {
+      const b = state.blocks.find(x => x.id === state.selectedId);
+      return (b && b.color) || state.defaultBlockBg;
+    },
+    hex => {
+      const b = state.blocks.find(x => x.id === state.selectedId);
+      if (!b) return;
+      b.color = hex;
+      updateAllBlockPositions();
+    }
+  );
+
+  el.btnResetSelColor.addEventListener('click', () => {
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!b) return;
+    pushHistory();
+    b.color = null;
+    updateAllBlockPositions();
+    syncInspectorUI();
+  });
+
+  el.sliderSelRadius.addEventListener('pointerdown', pushHistory);
+  el.sliderSelRadius.addEventListener('input', () => {
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!b) return;
+    b.radius = Number(el.sliderSelRadius.value);
+    el.valSelRadius.textContent = `${b.radius}px`;
+    el.btnResetSelRadius.classList.remove('hidden');
+    updateAllBlockPositions();
+  });
+
+  el.btnResetSelRadius.addEventListener('click', () => {
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!b) return;
+    pushHistory();
+    b.radius = null;
+    updateAllBlockPositions();
+    syncInspectorUI();
+  });
+
+  // Media Fit & Zoom
+  function setBlockFitMode(fit) {
+    const b = state.blocks.find(x => x.id === (state.framingId || state.selectedId));
+    if (!b || !b.media) return;
+    pushHistory();
+    b.media.fitMode = fit;
+    b.media.scale = 1;
+    b.media.posX = 50;
+    b.media.posY = 50;
+    updateAllBlockPositions();
+    if (state.framingId === b.id) updateFramingHud(b);
+    syncInspectorUI();
+  }
+
+  el.inspectorFitToggle.addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    if (btn) setBlockFitMode(btn.dataset.fit);
+  });
+
+  el.framingFitToggle.addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    if (btn) setBlockFitMode(btn.dataset.fit);
+  });
+
+  el.sliderMediaZoom.addEventListener('pointerdown', pushHistory);
+  el.sliderMediaZoom.addEventListener('input', () => {
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!b || !b.media) return;
+    b.media.scale = clamp(Number(el.sliderMediaZoom.value), 0.15, 4);
+    el.valMediaZoom.textContent = `${b.media.scale.toFixed(2)}×`;
+    updateAllBlockPositions();
+    if (state.framingId === b.id) updateFramingHud(b);
+  });
+
+  // Typography Controls
+  function getSelectedTextSlot() {
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!b || !b.text) return null;
+    return { block: b, slot: b.text.slots[clamp(state.activeTextSlot, 0, 2)] };
+  }
+
+  el.btnToggleText.addEventListener('click', () => {
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!b) return;
+    pushHistory();
+    if (b.text) {
+      b.text = null;
+    } else {
+      b.text = createDefaultTextConfig();
+      b.text.slots.forEach(s => warmFontFace(s.font));
+    }
+    updateAllBlockPositions();
+    syncInspectorUI();
+  });
+
+  el.btnRemoveText.addEventListener('click', () => {
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!b || !b.text) return;
+    pushHistory();
+    b.text = null;
+    updateAllBlockPositions();
+    syncInspectorUI();
+  });
+
+  el.textSlotTabs.addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    state.activeTextSlot = Number(btn.dataset.slot);
+    syncInspectorUI();
+  });
+
+  el.inputSlotText.addEventListener('input', () => {
+    const ref = getSelectedTextSlot();
+    if (!ref) return;
+    ref.slot.text = el.inputSlotText.value;
+    updateAllBlockPositions();
+  });
+
+  el.inputSlotSize.addEventListener('input', () => {
+    const ref = getSelectedTextSlot();
+    if (!ref) return;
+    ref.slot.size = clamp(Number(el.inputSlotSize.value) || 24, 10, 220);
+    updateAllBlockPositions();
+  });
+
+  el.selectSlotWeight.addEventListener('change', () => {
+    const ref = getSelectedTextSlot();
+    if (!ref) return;
+    pushHistory();
+    ref.slot.weight = el.selectSlotWeight.value;
+    updateAllBlockPositions();
+  });
+
+  el.btnSlotItalic.addEventListener('click', () => {
+    const ref = getSelectedTextSlot();
+    if (!ref) return;
+    pushHistory();
+    ref.slot.italic = !ref.slot.italic;
+    syncInspectorUI();
+    updateAllBlockPositions();
+  });
+
+  el.btnSlotUpper.addEventListener('click', () => {
+    const ref = getSelectedTextSlot();
+    if (!ref) return;
+    pushHistory();
+    ref.slot.uppercase = !ref.slot.uppercase;
+    syncInspectorUI();
+    updateAllBlockPositions();
+  });
+
+  bindColorPair(
+    el.pickerSlotColor,
+    el.hexSlotColor,
+    el.swatchSlotColor,
+    () => {
+      const ref = getSelectedTextSlot();
+      return (ref && ref.slot.color) || '#EDEDED';
+    },
+    hex => {
+      const ref = getSelectedTextSlot();
+      if (!ref) return;
+      ref.slot.color = hex;
+      updateAllBlockPositions();
+    }
+  );
+
+  el.textAlignH.addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!btn || !b || !b.text) return;
+    pushHistory();
+    b.text.align = btn.dataset.align;
+    syncInspectorUI();
+    updateAllBlockPositions();
+  });
+
+  el.textAlignV.addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!btn || !b || !b.text) return;
+    pushHistory();
+    b.text.valign = btn.dataset.valign;
+    syncInspectorUI();
+    updateAllBlockPositions();
+  });
+
+  el.sliderTextPad.addEventListener('pointerdown', pushHistory);
+  el.sliderTextPad.addEventListener('input', () => {
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!b || !b.text) return;
+    b.text.padding = Number(el.sliderTextPad.value);
+    el.valTextPad.textContent = `${b.text.padding}px`;
+    updateAllBlockPositions();
+  });
+
+  el.btnUploadMedia.addEventListener('click', () => {
+    if (!state.selectedId) return;
+    uploadTargetId = state.selectedId;
+    el.fileUploadMedia.value = '';
+    el.fileUploadMedia.click();
+  });
+
+  el.btnFrameMedia.addEventListener('click', () => {
+    if (!state.selectedId) return;
+    enterFramingMode(state.selectedId);
+  });
+
+  el.btnClearMedia.addEventListener('click', () => {
+    const b = state.blocks.find(x => x.id === state.selectedId);
+    if (!b || !b.media) return;
+    pushHistory();
+    b.media = null;
+    if (state.framingId === b.id) exitFramingMode();
+    renderBlocks();
+    syncInspectorUI();
+  });
+
+  el.btnDeleteBlock.addEventListener('click', () => {
+    if (state.selectedId) deleteBlock(state.selectedId);
+  });
+
+  // Framing HUD buttons
+  el.framingBackdrop.addEventListener('dblclick', exitFramingMode);
+  el.framingBackdrop.addEventListener('click', exitFramingMode);
+  el.btnExitFrame.addEventListener('click', exitFramingMode);
+  el.btnResetFrame.addEventListener('click', () => {
+    const b = state.blocks.find(x => x.id === state.framingId);
+    if (!b || !b.media) return;
+    pushHistory();
+    b.media.posX = 50;
+    b.media.posY = 50;
+    b.media.scale = 1;
+    const div = blockNodes.get(b.id);
+    syncBlockMediaDOM(div, b, getBlockRect(b, stageW, stageH, stageScale));
+    updateFramingHud(b);
+    syncInspectorUI();
+  });
+
+  // Workspace deselect
+  el.workspace.addEventListener('pointerdown', e => {
+    if (e.target === el.workspace || e.target === el.artboard) {
+      if (state.framingId) {
+        exitFramingMode();
+      } else if (state.selectedId) {
+        state.selectedId = null;
+        renderBlocks();
+        syncInspectorUI();
+      }
+    }
+  });
+
+  // Export Controls
+  el.selectExportMode.addEventListener('change', () => {
+    state.exportMode = el.selectExportMode.value;
+    syncInspectorUI();
+  });
+
+  el.exportDurationToggle.addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    state.exportDuration = Number(btn.dataset.dur);
+    syncInspectorUI();
+  });
+
+  el.inputCustomDuration.addEventListener('change', () => {
+    state.exportDuration = clamp(Number(el.inputCustomDuration.value) || 5, 0.5, 60);
+    syncInspectorUI();
+  });
+
+  el.exportHoldToggle.addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    state.exportHold = Number(btn.dataset.hold);
+    syncInspectorUI();
+  });
+
+  el.inputCustomHold.addEventListener('change', () => {
+    state.exportHold = clamp(Number(el.inputCustomHold.value) || 0, 0, 60);
+    syncInspectorUI();
+  });
+
+  el.btnExportPng.addEventListener('click', exportPng);
+  el.btnPreviewAnim.addEventListener('click', togglePreview);
+  el.btnExportMp4.addEventListener('click', exportMp4);
+
+  // Keyboard shortcuts
+  window.addEventListener('keydown', e => {
+    const activeTag = document.activeElement && document.activeElement.tagName;
+    const inInput = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT';
+
+    if (e.key === 'Escape') {
+      if (!el.fontPickerMenu.classList.contains('hidden')) {
+        el.fontPickerMenu.classList.add('hidden');
+        el.fontPickerTrigger.setAttribute('aria-expanded', 'false');
+      } else if (state.framingId) {
+        exitFramingMode();
+      } else if (previewRaf) {
+        stopPreview();
+      } else if (state.selectedId && !inInput) {
+        state.selectedId = null;
+        renderBlocks();
+        syncInspectorUI();
+      }
+      return;
+    }
+
+    if (e.key === 'Enter' && state.framingId) {
+      exitFramingMode();
+      return;
+    }
+
+    if (inInput) return;
+
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) redo();
+      else undo();
+      return;
+    }
+
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y') {
+      e.preventDefault();
+      redo();
+      return;
+    }
+
+    if ((e.key === 'Delete' || e.key === 'Backspace') && state.selectedId && !state.framingId) {
+      e.preventDefault();
+      deleteBlock(state.selectedId);
+    }
+  });
+
+  // Resize observer
+  const ro = new ResizeObserver(() => layoutStage(true));
+  ro.observe(el.workspace);
+
+  // Initialize
+  syncInspectorUI();
+  layoutStage(true);
+  renderBlocks();
+})();
+</script>
+</body>
+</html>
